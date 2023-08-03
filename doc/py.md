@@ -12,3 +12,18 @@ pip install -r requirements.txt
 
 ```
 
+
+###
+```
+Class:
+
+    Person  : 0
+    Face    : 1
+    Legs    : 2
+    Foot    : 3
+
+    Hand    : 4+(20)
+
+
+```
+
