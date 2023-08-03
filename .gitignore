@@ -1,0 +1,10 @@
+*.pyc
+*.pkl
+*.pkl.csv
+__pycache__/
+*.py[cod]
+*$py.class
+.data
+.idea
+*.pt
+.vscode
