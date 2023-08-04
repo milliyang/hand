@@ -180,7 +180,10 @@ def run_convert(args: argparse.Namespace) -> None:
                 label_path = row["image_path"].replace(phase, f"{phase}_labels").replace(".jpg", ".txt")
                 with open(label_path, "w") as f:
                     for i in range(len(row["labels"])):
-                        f.write(str(row["category_id"][i]) + " ")
+                        # leo
+                        #f.write(str(row["category_id"][i]) + " ")
+                        # hand override to 2
+                        f.write(str(2) + " ")
                         f.write(" ".join(map(str, row["converted_bboxes"][i])) + "\n")
 
         with open(f"{phase}.txt", "w") as f:
@@ -194,3 +197,6 @@ if __name__ == "__main__":
     parser.add_argument("--cfg", default="converter_config.yaml", type=str, help="path to data config")
     args = parser.parse_args()
     run_convert(args)
+
+# For Yolo
+# python.exe hagrid\hagrid_to_yolo.py --cfg hagrid/converter_config.yaml --bbox_format cxcywh
