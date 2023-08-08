@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
     FooTracker fooTracker;
 
-    ::google::InitGoogleLogging(argv[0]);
+    //::google::InitGoogleLogging(argv[0]);
 
     string model_file = argv[1];
     string trained_file = argv[2];

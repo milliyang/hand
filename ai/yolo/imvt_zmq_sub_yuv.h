@@ -1,7 +1,8 @@
 #ifndef __IMVT_ZMQ_SUB_YUV_H__
 #define __IMVT_ZMQ_SUB_YUV_H__
 
-#include <cv.h>
+//#include <cv.h>
+#include <opencv2/opencv.hpp>
 
 #ifdef __cplusplus
 #if __cplusplus

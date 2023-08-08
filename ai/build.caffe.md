@@ -8,9 +8,16 @@ sudo apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev
 
 
 
-cd caffe_hisi
-make
-
-
-
 sudo apt-get install nvidia-cuda-toolkit
+
+
+### Build Caffe on Ubuntu
+```
+
+mkdir build
+cmake ..
+make all
+make install
+
+
+```

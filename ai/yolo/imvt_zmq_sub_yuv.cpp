@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "opencv2/opencv.hpp"
 #include "imvt_zmq_sub.h"
 #include "imvt_zmq_sub_yuv.h"

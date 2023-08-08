@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "yolo2ab.h"
 #include "box.h"
 #include "imvt_yolo2x.h"
@@ -575,10 +575,12 @@ void Yolo2AB::PostProcess(const cv::Mat &img)
 
     printf("network_output size:%d\n", layer.outputs*layer.batch * sizeof(float));
 
+#if 0
     FILE *ptr;
     fopen_s(&ptr, "network_output.bin", "wb");
     fwrite((void*)begin, 1, layer.outputs*layer.batch * sizeof(float), ptr);
     fclose(ptr);
+#endif
 
 #if 0
     // hack the final output from darknet

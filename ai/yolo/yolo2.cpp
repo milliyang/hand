@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "imvt_yolo2.h"
 #include "imvt_yolo3.h"
 #include "yolo2.h"

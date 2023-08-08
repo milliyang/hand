@@ -1,4 +1,5 @@
-#include "stdafx.h"
+//#include "stdafx.h"
+
 #include "imvt_zmq_pub.h"
 #include "zmq.h"
 #include <stdint.h>
@@ -20,57 +21,24 @@ static struct imvt_mq_ctx s_zmq;
 
 int imvt_zmq_pub_init(void)
 {
-    memset(&s_zmq, 0, sizeof(s_zmq));
-    s_zmq.context = zmq_ctx_new();
-    s_zmq.publisher = zmq_socket(s_zmq.context, ZMQ_PUB);
-
-    int hwm = HIGH_WATER_MARK;
-    // set high water mark. (max queue for outgoing)
-    int rc = zmq_setsockopt (s_zmq.publisher, ZMQ_SNDHWM, &hwm, sizeof(int));
-    if (rc == 0) {
-        return OK;
-    } else {
-        return NG;
-    }
+return OK;
 }
 int imvt_zmq_pub_bind(void)
 {
-    int rc = zmq_bind(s_zmq.publisher, PUB_ADDR);
-    if (rc == 0) {
-        return OK;
-    } else {
-        return NG;
-    }
+return OK;
 }
 
 int imvt_zmq_pub_send_frame_x(unsigned char *p_buffer, int len, unsigned char *p_buffer2, int len2)
 {
-    unsigned char * p;
-    zmq_msg_t message;
-    zmq_msg_init_size (&message, len + len2);
-    p = (unsigned char *)zmq_msg_data (&message);
-    memcpy (p, p_buffer, len);
-    p+=len;
-    memcpy (p, p_buffer2, len2);
-
-    int size = zmq_msg_send (&message, s_zmq.publisher, 0);
-    zmq_msg_close (&message);
-    return (size);
+return OK;
 }
 
 int imvt_zmq_pub_send_frame(unsigned char *p_buffer, int len)
 {
-    zmq_msg_t message;
-    zmq_msg_init_size (&message, len);
-    memcpy (zmq_msg_data (&message), p_buffer, len);
-    int size = zmq_msg_send (&message, s_zmq.publisher, 0);
-    zmq_msg_close (&message);
-    return (size);
+return OK;
 }
 
 int imvt_zmq_pub_deinit(void)
 {
-    zmq_close(s_zmq.publisher);
-    zmq_ctx_destroy(s_zmq.context);
     return OK;
 }

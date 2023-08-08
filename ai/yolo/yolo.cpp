@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 
 #include "yolo1.h"
 #include "yolo2.h"
@@ -6,6 +6,7 @@
 using namespace caffe;
 using std::string;
 
+#if 0
 int main(int argc, char **argv)
 {
     if (argc != 6) {
@@ -15,7 +16,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    ::google::InitGoogleLogging(argv[0]);
+    //::google::InitGoogleLogging(argv[0]);
 
     string model_file = argv[1];
     string trained_file = argv[2];
@@ -27,7 +28,7 @@ int main(int argc, char **argv)
     std::cout << "---------- Prediction for " << file << " ----------" << std::endl;
 
     cv::Mat img = cv::imread(file, -1);
-    CHECK(!img.empty()) << "Unable to decode image " << file;
+    //CHECK(!img.empty()) << "Unable to decode image " << file;
     std::vector<YoloBox> yolo_boxs = yolo1.Run(img);
 
     for (auto ybox : yolo_boxs) {
@@ -36,3 +37,5 @@ int main(int argc, char **argv)
 
     // ./Yolo.exe yolo_small_deploy.prototxt yolo_small.caffemodel mean.binaryproto labels.txt person.jpg
 }
+
+#endif

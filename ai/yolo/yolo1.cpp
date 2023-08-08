@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "yolo1.h"
 #include "box.h"
 
@@ -246,10 +246,10 @@ static float box_union(box a, box b)
     return u;
 }
 
-static float box_iou(box a, box b)
-{
-    return box_intersection(a, b) / box_union(a, b);
-}
+// static float box_iou(box a, box b)
+// {
+//     return box_intersection(a, b) / box_union(a, b);
+// }
 
 static void get_detection_boxes(const float *addr, int w, int h, float thresh, float **probs, box *boxes, int only_objectness)
 {
