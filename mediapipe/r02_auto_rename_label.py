@@ -27,7 +27,8 @@ if __name__ == '__main__':
     # ->
     #F:\hagrid\download\subsample\subsample\train_labels\call\5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb.txt
 
-    path = "F:\\hagrid\\download\\subsample\\subsample\\train_labels"
+    #path = "F:\\hagrid\\download\\subsample\\subsample\\train_labels"
+    path = "/home/leo/myhome/hagrid/download/subsample/train_labels"
 
     all_files = get_all_files_in_dir([path])
 

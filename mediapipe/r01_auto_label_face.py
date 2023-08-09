@@ -19,7 +19,8 @@ id_names = {
 }
 
 image_dir = [
-    'F:\\hagrid\\download\\subsample\\subsample\\train'
+    # 'F:\\hagrid\\download\\subsample\\subsample\\train'
+    '/home/leo/myhome/hagrid/download/subsample/train'
 ]
 
 def id_to_names(id):
@@ -169,10 +170,13 @@ if __name__ == '__main__':
     config = {
         "show_image"        : False,
         "dirs"              : image_dir,
-        #
-        "auto_label"        : True,
-        #"auto_label_output" : "./output"   #   xxxx.txt -> xxxx.auto_hand.txt
+        "auto_label"        : True,     #   xxxx.txt -> xxxx.auto_hand.txt
     }
 
+    config = {
+        "show_image"        : True,
+        "dirs"              : image_dir,
+        "auto_label"        : False,
+    }
     images = get_all_image_in_dir(config["dirs"])
     auto_label_face_for_yolo(images, config)

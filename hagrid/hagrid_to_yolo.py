@@ -200,3 +200,80 @@ if __name__ == "__main__":
 
 # For Yolo
 # python.exe hagrid\hagrid_to_yolo.py --cfg hagrid/converter_config.yaml --bbox_format cxcywh
+
+# python hagrid_to_yolo.py --cfg converter_config_leo4090.yaml --bbox_format cxcywh
+
+#before:
+# leo@leo-4090:~/myhome/hagrid/download$ tree -d
+# .
+# ├── ann_subsample
+# │   └── train
+# └── subsample
+#     └── train
+#         ├── call
+#         ├── dislike
+#         ├── fist
+#         ├── four
+#         ├── like
+#         ├── mute
+#         ├── ok
+#         ├── one
+#         ├── palm
+#         ├── peace
+#         ├── peace_inverted
+#         ├── rock
+#         ├── stop
+#         ├── stop_inverted
+#         ├── three
+#         ├── three2
+#         ├── train_labels
+#         ├── two_up
+#         └── two_up_inverted
+
+## after:
+
+# leo@leo-4090:~/myhome/hagrid/download$ tree -d
+# .
+# ├── ann_subsample
+# │   └── train
+# └── subsample
+#     ├── train
+#     │   ├── call
+#     │   ├── dislike
+#     │   ├── fist
+#     │   ├── four
+#     │   ├── like
+#     │   ├── mute
+#     │   ├── ok
+#     │   ├── one
+#     │   ├── palm
+#     │   ├── peace
+#     │   ├── peace_inverted
+#     │   ├── rock
+#     │   ├── stop
+#     │   ├── stop_inverted
+#     │   ├── three
+#     │   ├── three2
+#     │   ├── train_labels
+#     │   ├── two_up
+#     │   └── two_up_inverted
+#     └── train_labels
+#         ├── call
+#         ├── dislike
+#         ├── fist
+#         ├── four
+#         ├── like
+#         ├── mute
+#         ├── ok
+#         ├── one
+#         ├── palm
+#         ├── peace
+#         ├── peace_inverted
+#         ├── rock
+#         ├── stop
+#         ├── stop_inverted
+#         ├── three
+#         ├── three2
+#         ├── two_up
+#         └── two_up_inverted
+

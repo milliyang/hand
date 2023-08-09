@@ -1,0 +1,65 @@
+
+###
+```
+Future:
+
+Class 20:
+
+    Person  : 0
+    Face    : 1
+    Hand    : 2
+    Body    : 3
+    Legs    : 4
+    Foot    : 5
+    Others  : 6 ~ 20, or hands (fist, five)
+
+classes = ["person","face","hand","body","legs","foot","bicycle","bird","boat","bottle","bus","car","cat","cow","dog","horse","motorbike","sheep","sofa","train",]
+
+
+```
+
+
+
+### Generate Data with hand,face labels:
+```rust
+
+1.
+    cd /home/leo/myhome/hand/hagrid
+    python hagrid_to_yolo.py --cfg converter_config_leo4090.yaml --bbox_format cxcywh           //gen: train.txt for all image files
+
+2.
+    cd /home/leo/myhome/hand/mediapipe
+    python r01_auto_label_face.py                   //auto labal face,  and merge hand_label and face_label together, and generate  xxz_auto_hand.txt
+
+3.
+    cd /home/leo/myhome/hand/mediapipe
+    python r02_auto_rename_label.py                 //rename labals files in /home/leo/myhome/hagrid/download/subsample/train_labels
+
+4.  
+    cd /home/leo/myhome/hand/mediapipe
+    python r03_put_label_in_image_dir.py            //put label and image in the same dir for Yolo Training
+
+
+```
+
+
+### Merge VOL and hand-face dataset:
+```rust
+
+1.  
+    cd /home/leo/myhome/dataset
+    python voc_label_20.py 
+
+2.  
+    cat 2007_train.txt 2007_val.txt 2012_*.txt > train.txt
+    wc -l train.txt 
+
+3.  
+    python select_cls_in_image.py
+    python select_cls_shuffer.py
+    wc -l selected_person_hand.txt
+
+
+
+```
+
