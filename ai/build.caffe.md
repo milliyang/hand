@@ -7,10 +7,6 @@ sudo apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev
 #sudo apt-get install libhdf5-dev
 
 
-
-sudo apt-get install nvidia-cuda-toolkit
-
-
 ### Build Caffe on Ubuntu
 ```
 
@@ -18,6 +14,17 @@ mkdir build
 cmake ..
 make all
 make install
+
+```
+
+
+
+### hisi
+```
+cd docker                                   # 包含Dockerfile
+
+docker build -t ss928_image .
+
 
 
 ```
