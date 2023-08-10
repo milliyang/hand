@@ -1,4 +1,6 @@
 //#include "stdafx.h"
+
+#include <opencv2/imgproc/types_c.h>	//bugfix:u20.04 opencv4 set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")   #u20.04
 #include "opencv2/opencv.hpp"
 #include "imvt_zmq_sub.h"
 #include "imvt_zmq_sub_yuv.h"

@@ -73,6 +73,13 @@ sudo docker pull bvlc/caffe:cpu
 
 
 
+
+sudo apt-get install libzmq3-dev
+
+
+
+
+
 ```
 
 

@@ -128,7 +128,9 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
 {
     Caffe::set_mode(YOLO_CAFFE_MODE);
     std::cerr << "mode is gpu:" << YOLO_CAFFE_MODE << std::endl;
-    //Caffe::DeviceQuery();
+    if (YOLO_CAFFE_MODE) {
+        Caffe::DeviceQuery();
+    }
 
     /* Load the network. */
     net_.reset(new Net<float>(model_file, TEST));

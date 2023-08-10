@@ -8,11 +8,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fPIE")
 
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}")
-set(CAFFE_DIR "${ROOT_DIR}/../caffe_hisi")
+#set(CAFFE_DIR "${ROOT_DIR}/../caffe_hisi")
+set(CAFFE_DIR "/home/leo/github/caffe")
+
+#/home/leo/github/caffe/build/src/caffe/proto/caffe.pb.h
 
 include_directories("${ROOT_DIR}/.")
 include_directories("${CAFFE_DIR}/include")
 include_directories("${CAFFE_DIR}/build/src")	#"caffe/proto/caffe.pb.h"
+include_directories("${CAFFE_DIR}/build/install/include")	#"caffe/proto/caffe.pb.h"
 
 include_directories("${CAFFE_DIR}/.build_release/include")	#"caffe/proto/caffe.pb.h"
 include_directories("${CAFFE_DIR}/build/include")	#"caffe/proto/caffe.pb.h"
@@ -45,6 +49,8 @@ else()
 
     #set(OpenCV_DIR "${ROOT_DIR}/3rd/opencv.install/share/OpenCV/")
 	set(OpenCV_DIR "/usr/local/share/OpenCV/")
+
+    set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")   #u20.04
 endif()
 
 find_package( OpenCV REQUIRED )
@@ -55,14 +61,22 @@ message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
 
 # If you only built the library
 list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi/.build_release")
+list (APPEND CMAKE_PREFIX_PATH "/home/leo/github/caffe/build/install")
+#list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi/.build_release")
 
 # If you installed the library there
 #list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi")
 find_package(Caffe REQUIRED)
 
-list (APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0")
+# u22.04:
+#list (APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0")
+#find_package(boost_ALL REQUIRED COMPONENTS ALL) 
+
+# u20.04:
+list (APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/Boost-1.71.0")
+find_package(Boost REQUIRED system thread filesystem python)
+
 #find_package(Boost REQUIRED)
-find_package(Boost REQUIRED COMPONENTS ALL) 
 
 
 add_definitions(-DCONFIG_SPDLOG)

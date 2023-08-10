@@ -12,4 +12,9 @@ git co hisi
 sudo apt-get install -y make zlib1g zlib1g-dev build-essential libbz2-dev libsqlite3-dev libssl-dev libxslt1-dev libffidev openssl python3-tk
 
 
+
+
+sudo apt-get install libzmq3-dev            #yolo tracker
+
+
 ```
