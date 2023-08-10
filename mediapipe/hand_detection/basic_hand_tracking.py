@@ -39,6 +39,10 @@ def main():
 
             cv2.imshow('Hand tracking', image)
 
+            # print(image.shape)
+            # cv2.imwrite('leo.png', image)
+            # break
+
             # Exit if user pressed 'q'
             if (cv2.waitKey(10) & 0xFF == ord(EXIT_KEY)):
                 break
