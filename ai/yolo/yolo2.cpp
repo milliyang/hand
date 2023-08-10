@@ -12,6 +12,9 @@
 #include <vector>
 #include <iostream>
 
+#define LEO_CLASS_80        (0)
+
+#if LEO_CLASS_80
 const static char *yolo2_class_name[] = {
     //"background  ",
     "person",
@@ -96,11 +99,36 @@ const static char *yolo2_class_name[] = {
     "toothbrush",
 };
 
+#else
+const static char *yolo2_class_name[] = {
+    "person",
+    "face",
+    "hand",
+    "tvmonitor",
+    "aeroplane",
+    "chair",
+    "bicycle",
+    "bird",
+    "boat",
+    "bottle",
+    "bus",
+    "car",
+    "cat",
+    "cow",
+    "dog",
+    "horse",
+    "motorbike",
+    "sheep",
+    "sofa",
+    "train",
+};
+#endif
+
 Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const string &mean_file, const string &label_file)
 {
     Caffe::set_mode(YOLO_CAFFE_MODE);
     std::cerr << "mode is gpu:" << YOLO_CAFFE_MODE << std::endl;
-    Caffe::DeviceQuery();
+    //Caffe::DeviceQuery();
 
     /* Load the network. */
     net_.reset(new Net<float>(model_file, TEST));
@@ -139,8 +167,13 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
         CHECK_EQ(net_->num_outputs(), 1) << "Network should have exactly one output.";
     }
     std::cerr << "net name: " << net_->name() << " type: " << layer.type << std::endl;
+
     layer.batch = 1;
+#if LEO_CLASS_80
     layer.classes = 80;
+#else
+    layer.classes = 20;
+#endif
     layer.classfix = 1;
     layer.coords = 4;
     layer.background = 0;
@@ -214,6 +247,7 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
         confidence_threshold_ = 0.5;
         layer.outputs = layer.sub_layer[0].outputs;
     } else {
+#if LEO_CLASS_80
         layer.sub_layer_num = 0;
         layer.sub_layer_continue_memory = 0;
         layer.w = layer.h = 13;
@@ -229,11 +263,35 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
         layer.biases[9] = 9.16828;
         //layer     filters    size              input                output
         //30 conv    425  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 425 0.147 BF
+        //71994
         layer.n = 5;
         layer.w = layer.h = 13;
         layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
         layer.sub_layer[0].outputs = layer.outputs;
         confidence_threshold_ = 0.45;
+#else
+        layer.sub_layer_num = 0;
+        layer.sub_layer_continue_memory = 0;
+        layer.w = layer.h = 13;
+        layer.biases[0] = 1.3221;   //region_param.anchors:
+        layer.biases[1] = 1.73145;
+        layer.biases[2] = 3.19275;
+        layer.biases[3] = 4.00944;
+        layer.biases[4] = 5.05587;
+        layer.biases[5] = 8.09892;
+        layer.biases[6] = 9.47112;
+        layer.biases[7] = 4.84053;
+        layer.biases[8] = 11.2364;
+        layer.biases[9] = 10.0071;
+        //layer     filters    size              input                output
+        //30 conv    125  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 125 0.147 BF
+        //21125
+        layer.n = 5;
+        layer.w = layer.h = 13;
+        layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
+        layer.sub_layer[0].outputs = layer.outputs;
+        confidence_threshold_ = 0.2;
+#endif
     }
     printf("layer.outputs:%d\n", layer.outputs);
 
@@ -244,9 +302,8 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
     bbox_each_grid = layer.n;
     classes_ = layer.classes;
     total_bbox_ = grid_ * grid_ * bbox_each_grid; //13 * 13 * 5; anchor box
-    //channel = ( 5 * (5+80) = 425)
+    //channel = ( 5 * (5+20) = 125)
     class_names_ = yolo2_class_name;
-
     //eg.
     //每个box包含5个坐标值和20个类别，所以总共是5 * （5+20）= 125个输出维度
     //hisi:
@@ -756,6 +813,7 @@ void Yolo2::PostProcess(const cv::Mat &img)
         printf("not support network\n");
         return;
     }
+    printf("net_->num_outputs():%d\n", net_->num_outputs());
 
     if (net_->num_outputs() > 1) {
         // not linear network output (not flatten, not concat)
@@ -771,6 +829,7 @@ void Yolo2::PostProcess(const cv::Mat &img)
     for (int j = 0; j < net_->num_outputs(); j++) {
         output_layer = net_->output_blobs()[j];
         begin = output_layer->cpu_data();
+        //begin = output_layer->gpu_data();
         if (output_layer->width() == 13) {
             sub_layer_idx = 0;
         } else if (output_layer->width() == 26) {
@@ -783,15 +842,25 @@ void Yolo2::PostProcess(const cv::Mat &img)
         layer.sub_layer[sub_layer_idx].output = (float *)begin;
         layer.output = (float*)begin; //always assign the last output
 
-        //printf("blob[%d] width:%d height:%d channel:%d \n", j, output_layer->width(), output_layer->height(), output_layer);
+        printf("blob[%d] width:%d height:%d channel:%d \n", j, output_layer->width(), output_layer->height(), 0/*output_layer*/);
 
-#if TRACK_ALL_LAYER
+#if 1
+        {
+            FILE *ptr;
+            ptr = fopen("network_output.bin", "wb");
+            fwrite((void*)begin, 1, layer.outputs*layer.batch * sizeof(float), ptr);
+            fclose(ptr);
+        }
+#endif
+
+#if TRACK_ALL_LAYER || 1
         //Hack,dump
         for (int i = 0; i < 10; i++) {
             printf("network output[%d] idx:[%d]:%f\n", j, i, begin[i]);
         }
-        sprintf(name, "caffe_network_output_%s_%d_width_%d.bin", net_->name(), j, output_layer->width());
-        fopen_s(&ptr, name, "wb");
+        sprintf(name, "caffe_network_output_%s_%d_width_%d.bin", net_->name().c_str(), j, output_layer->width());
+        //fopen_s(&ptr, name, "wb");
+        ptr = fopen(name, "wb");
         fwrite((void*)begin, sizeof(float), layer.sub_layer[j].outputs, ptr);
         fclose(ptr);
 #endif

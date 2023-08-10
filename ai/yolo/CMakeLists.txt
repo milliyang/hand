@@ -14,6 +14,9 @@ include_directories("${ROOT_DIR}/.")
 include_directories("${CAFFE_DIR}/include")
 include_directories("${CAFFE_DIR}/build/src")	#"caffe/proto/caffe.pb.h"
 
+include_directories("${CAFFE_DIR}/.build_release/include")	#"caffe/proto/caffe.pb.h"
+include_directories("${CAFFE_DIR}/build/include")	#"caffe/proto/caffe.pb.h"
+
 #include_directories("/usr/local/include")	#opencv
 
 include_directories("/usr/local/cuda-12.2/targets/x86_64-linux/include/")
@@ -52,6 +55,7 @@ message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
 
 # If you only built the library
 list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi/.build_release")
+
 # If you installed the library there
 #list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi")
 find_package(Caffe REQUIRED)
@@ -62,6 +66,9 @@ find_package(Boost REQUIRED COMPONENTS ALL)
 
 
 add_definitions(-DCONFIG_SPDLOG)
+
+add_definitions(-DCPU_ONLY)
+
 
 file(GLOB SRC "${ROOT_DIR}/*.cpp"
 			  "${ROOT_DIR}/base/*.cpp"
