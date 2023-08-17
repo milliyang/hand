@@ -10,6 +10,7 @@ CONNECTION_COLOR = (0, 255, 0)
 EXIT_KEY = 'q'
 
 def main():
+    idx = 0
     mpDrawing = mp.solutions.drawing_utils
     mpHands = mp.solutions.hands
 
@@ -34,14 +35,12 @@ def main():
                         mpDrawing.DrawingSpec(color=DOT_COLOR, thickness=2, circle_radius=4),
                         mpDrawing.DrawingSpec(color=CONNECTION_COLOR, thickness=2, circle_radius=2)
                     )
-                    
-                    # print(type(hand))
 
             cv2.imshow('Hand tracking', image)
 
-            # print(image.shape)
-            # cv2.imwrite('leo.png', image)
-            # break
+            # cv2.waitKey(10)
+            # cv2.imwrite(f'leo_{idx}.png', frame)
+            # idx+=1
 
             # Exit if user pressed 'q'
             if (cv2.waitKey(10) & 0xFF == ord(EXIT_KEY)):
