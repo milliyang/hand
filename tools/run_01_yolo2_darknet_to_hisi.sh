@@ -20,4 +20,4 @@ docker exec caffe111 /root/host/imvt/zcam_yolo/hi928docker/yolo/imvt/docker_run_
 
 ls -al /home/leo/imvt/zcam_yolo/hi928docker/yolo/model_yuv/yolov2_original.om
 
-mv /home/leo/imvt/zcam_yolo/hi928docker/yolo/model_yuv/yolov2_original.om   /home/leo/imvt/zcam_yolo/zcam_ai_20_y2_s416_v001.om
+cp /home/leo/imvt/zcam_yolo/hi928docker/yolo/model_yuv/yolov2_original.om   /home/leo/imvt/zcam_yolo/zcam_ai_20_y2_s416_v001.om
