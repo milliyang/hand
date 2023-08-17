@@ -29,7 +29,6 @@ sudo apt-get -y install libboost-python-dev
 sudo apt-get -y install libopencv-dev
 ```
 
-
 ### Build Caffe on Ubuntu
 ```
 
@@ -40,14 +39,11 @@ make install
 
 ```
 
-
 ### hisi
 ```
 cd docker                                   # 包含Dockerfile
 
 docker build -t ss928_image .
-
-
 
 ```
 
@@ -70,18 +66,9 @@ sudo apt install docker-ce docker-ce-cli containerd.io              //install do
 
 sudo docker pull bvlc/caffe:cpu
 
-
-
-
-
 sudo apt-get install libzmq3-dev
 
-
-
-
-
 ```
-
 
 ### run yolo tracker
 ```
