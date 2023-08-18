@@ -1,7 +1,12 @@
 import cv2
 import mediapipe as mp
-
 import os, time
+
+
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_pose = mp.solutions.pose
+
 
 EXIT_KEY = 'q'
 
@@ -58,13 +63,24 @@ def get_all_image_in_dir(dir_list =[]):
 def auto_label_face_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
     mpDraw = mp.solutions.drawing_utils
-    mp_cfg = {
+    mp_face_cfg = {
         "min_detection_confidence" : config['face_detect_thresh'], #0.5
         "model_selection" : 1,      # 1,near,far; 0,near;
     }
+    mp_pose_cfg = {
+        "static_image_mode"         : True,
+        "model_complexity"          : 2,    #0,1,2
+        "enable_segmentation"       : False,
+        "min_detection_confidence"  : config['pose_detect_thresh'], #0.5
+        "upper_body_only"           : False,
+        "enable_segmentation"       : False,
+        "smooth_segmentation"       : False,
+        "min_tracking_confidence"   : 0.5,
+    }
+    pose_detection = mp_pose.Pose(mp_pose_cfg)
 
     #cap = cv2.VideoCapture(0)
-    with mpFaceDetector.FaceDetection(**mp_cfg) as faceDetection:
+    with mpFaceDetector.FaceDetection(**mp_face_cfg) as faceDetection:
 
         for _, imagef in enumerate(imagefiles):
             frame = cv2.imread(imagef)
@@ -84,11 +100,40 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
 
             faces_label = []
 
+            if config["pose_detect"]:
+                pose_ret = pose_detection.process(image)
+                #draw pose
+                mp_drawing.draw_landmarks(
+                image,
+                pose_ret.pose_landmarks,
+                mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+
+                if pose_ret.pose_landmarks:
+                    #https://blog.csdn.net/weixin_43229348/article/details/120541448
+                    #https://developers.google.cn/android/reference/com/google/mlkit/vision/pose/PoseLandmark
+                    eye = (pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_EYE].x * width,
+                           pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_EYE].y * height)
+                    shoulder = (pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].x * width,
+                               pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].y * height)
+                    hip = (pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_HIP].x * width,
+                           pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_HIP].y * height)
+                    knee = (pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_KNEE].x * width,
+                            pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_KNEE].y * height)
+                    foot = (pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].x * width,
+                            pose_ret.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y * height)
+                    pose_cc = (250, 0, 0)
+                    cv2.putText( image, f'hip',  (int(hip[0]), int(hip[1])), linefont, 0.5, pose_cc, 1)
+                    cv2.putText( image, f'shoulder',  (int(shoulder[0]), int(shoulder[1])), linefont, 0.5, pose_cc, 1)
+                    cv2.putText( image, f'eye',  (int(eye[0]), int(eye[1])), linefont, 0.5, pose_cc, 1)
+                    cv2.putText( image, f'knee', (int(knee[0]), int(knee[1])), linefont, 0.5, pose_cc, 1)
+                    cv2.putText( image, f'foot', (int(foot[0]), int(foot[1])), linefont, 0.5, pose_cc, 1)
+                    #print(f"foot:{foot} frame.shape:{frame.shape}")
+
             if config['face_detect']:
                 if (results.detections):
-                    for id, detection in enumerate(results.detections):
+                    for _, detection in enumerate(results.detections):
                         # mpDraw.draw_detection(image, detection)   #built-in function
-
                         # The box around the face
                         box = detection.location_data.relative_bounding_box
 
@@ -114,7 +159,7 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     items = yolo_fmt.strip().split()
                     object_id  = items[0]
                     #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
-                    
+
                     #cxcywh:
                     # python.exe  hagrid_to_yolo.py --bbox_format cxcywh
                     box_xmin   = float(items[1]) - float(items[3]) / 2.0
@@ -151,19 +196,22 @@ if __name__ == '__main__':
         "show_image_wait"       : 0,
         "dirs"                  : image_dir,
         "face_detect"           : True,
-        "face_detect_thresh"    : 0.2,
-        "auto_label"            : True,     #   xxxx.txt -> xxxx.auto_hand.txt
+        "face_detect_thresh"    : 0.4,
+        "pose_detect"           : True,
+        "pose_detect_thresh"    : 0.4,
+        "auto_label"            : True,     #   xxxx.jpg -> xxxx.auto_hand.txt
     }
 
     DEBUG = True
-
     if DEBUG:
         config = {
             "show_image"            : True,
-            "show_image_wait"       : 0.3,
+            "show_image_wait"       : 1.2,
             "dirs"                  : image_dir,
-            "face_detect"           : False,
+            "face_detect"           : True,
             "face_detect_thresh"    : 0.2,
+            "pose_detect"           : True,
+            "pose_detect_thresh"    : 0.2,
             "auto_label"            : False,
         }
     images = get_all_image_in_dir(config["dirs"])
