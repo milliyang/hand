@@ -1,5 +1,9 @@
 #!/bin/bash
 
+COLOR_RED="\e[31;1m"
+COLOR_GREEN="\e[32;1m"
+COLOR_END="\e[0m"
+
 
 # caffe docker
     # docker exec -it  darknet2caffe001 /bin/bash
@@ -21,3 +25,5 @@ docker exec caffe111 /root/host/imvt/zcam_yolo/hi928docker/yolo/imvt/docker_run_
 ls -al /home/leo/imvt/zcam_yolo/hi928docker/yolo/model_yuv/yolov2_original.om
 
 cp /home/leo/imvt/zcam_yolo/hi928docker/yolo/model_yuv/yolov2_original.om   /home/leo/imvt/zcam_yolo/zcam_ai_20_y2_s416_v001.om
+
+echo -e "${COLOR_GREEN} output: /home/leo/imvt/zcam_yolo/zcam_ai_20_y2_s416_v001.om ${COLOR_END}"
