@@ -19,7 +19,6 @@ id_names = {
 }
 
 image_dir = [
-    # 'F:\\hagrid\\download\\subsample\\subsample\\train'
     '/home/leo/myhome/hagrid/download/subsample/train'
 ]
 
