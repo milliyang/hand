@@ -23,11 +23,10 @@ def get_all_files_in_dir(dir_list =[]):
     return images
 
 if __name__ == '__main__':
-    #F:\hagrid\download\subsample\subsample\train_labels\call\5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb_auto_hand.txt
+    #F:\hagrid\download\subsample\subsample\train_labels\call\5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb_mp_hand.txt
     # ->
     #F:\hagrid\download\subsample\subsample\train_labels\call\5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb.txt
 
-    #path = "F:\\hagrid\\download\\subsample\\subsample\\train_labels"
     path = "/home/leo/myhome/hagrid/download/subsample/train_labels"
 
     all_files = get_all_files_in_dir([path])
@@ -35,7 +34,7 @@ if __name__ == '__main__':
     select_files = []
     remove_files = []
     for each in all_files:
-        if "auto_hand" in each:
+        if "mp_hand" in each:
             select_files.append(each)
         else:
             remove_files.append(each)
@@ -46,5 +45,5 @@ if __name__ == '__main__':
 
     for onefile in select_files:
         filename = os.path.join(path, onefile)
-        filename_new = filename.replace("_auto_hand.txt", ".txt")
+        filename_new = filename.replace("_mp_hand.txt", ".txt")
         os.rename(filename, filename_new)

@@ -6,7 +6,7 @@ import os, time
 EXIT_KEY = 'q'
 
 file_ext = ['jpg', 'jpeg']
-YOLO_IMAGE_SIZE = (416,416)
+YOLO_IMAGE_SIZE = (320,320)
 
 YOLO_HUMAN_BODY_ID = 0
 YOLO_HUMAN_FACE_ID = 1
@@ -22,7 +22,10 @@ image_dir = [
     '/home/leo/myhome/hagrid/download/subsample/train'
 ]
 
+linefont = cv2.FONT_HERSHEY_SIMPLEX
+
 def id_to_names(id):
+    id = int(id)
     if id in id_names.keys():
         return id_names[id]
     else:
@@ -52,26 +55,24 @@ def get_all_image_in_dir(dir_list =[]):
         break #quick debug
     return images
 
-
-def auto_label_face_for_yolo(imagefiles = [], show=False):
+def auto_label_face_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
     mpDraw = mp.solutions.drawing_utils
+    mp_cfg = {
+        "min_detection_confidence" : config['face_detect_thresh'], #0.5
+        "model_selection" : 1,      # 1,near,far; 0,near;
+    }
 
     #cap = cv2.VideoCapture(0)
-    with mpFaceDetector.FaceDetection(min_detection_confidence=0.7) as faceDetection:
+    with mpFaceDetector.FaceDetection(**mp_cfg) as faceDetection:
 
         for _, imagef in enumerate(imagefiles):
-            #print(v)
             frame = cv2.imread(imagef)
             frame = cv2.resize(frame, YOLO_IMAGE_SIZE)
-
-            size = frame.shape
-            # Camera's width & height
-            width  = size[1]
-            height = size[0]
+            height, width, _  = frame.shape
 
             # Flip the frame horizontally
-            #frame = cv2.flip(frame, 1)
+            # frame = cv2.flip(frame, 1)
 
             # Convert the color for the program to process
             # Since cv2 uses BGR and mediapipe uses RGB
@@ -83,74 +84,51 @@ def auto_label_face_for_yolo(imagefiles = [], show=False):
 
             faces_label = []
 
-            if (results.detections):
-                for id, detection in enumerate(results.detections):
-                    # Draw the box around the face with built-in function
-                    # mpDraw.draw_detection(image, detection)
+            if config['face_detect']:
+                if (results.detections):
+                    for id, detection in enumerate(results.detections):
+                        # mpDraw.draw_detection(image, detection)   #built-in function
 
-                    # The box around the face
-                    box = detection.location_data.relative_bounding_box
+                        # The box around the face
+                        box = detection.location_data.relative_bounding_box
 
-                    # Scale the box with current cap's width and height
-                    newBox = int(box.xmin * width), int(box.ymin * height), int(box.width * width), int(box.height * height)
+                        if config["show_image"]:
+                            face_box = int(box.xmin * width), int(box.ymin * height), int(box.width * width), int(box.height * height)
+                            face_cc = (0, 0, 250)
+                            cv2.rectangle(image, face_box, face_cc, 1)
+                            cv2.putText( image, f'face:{detection.score[0]:.2f}', (face_box[0]+40, face_box[1] - 20), linefont, 0.5, face_cc, 1 )
 
-                    if config["show_image"]:
-                        # Draw the scaled box with cv2.rectangle
-                        cv2.rectangle(image, newBox, (0, 255, 0), 1)
-                        cv2.putText(
-                            image, f'Score: {detection.score[0]:.2f}',
-                            (newBox[0], newBox[1] - 20),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2
-                        )
-
-                    #output yolo bbox fmt:  class,cx,xy,w,h
-                    face_info = f"{YOLO_HUMAN_FACE_ID} {box.xmin+box.width/2.0} {box.ymin+box.height/2.0} {box.width} {box.height}\n"
-                    faces_label.append(face_info)
+                        #output yolo bbox fmt:  class,cx,xy,w,h
+                        face_info = f"{YOLO_HUMAN_FACE_ID} {box.xmin+box.width/2.0} {box.ymin+box.height/2.0} {box.width} {box.height}\n"
+                        faces_label.append(face_info)
 
             #print(imagef)
-            #F:\hagrid\download\subsample\subsample\train\call
+            #image: /home/leo/myhome/hagrid/download/subsample/train
+            #label: /home/leo/myhome/hagrid/download/subsample/train_labels
             labelfile = imagef.replace("train", "train_labels").replace(".jpg", ".txt")
             ff = open(labelfile)
             strings = ff.readlines()
             ff.close()
             if config["show_image"]:
-                for each in strings:
-                    yolo_fmt = each.strip()
-                    yolo_item = yolo_fmt.split()
-                #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
-                object_id  = yolo_item[0]
-                newBox = None
-                if False:
-                    #xywh:
-                    # python.exe  hagrid_to_yolo.py --bbox_format xywh
-                    box_xmin   = float(yolo_item[1])
-                    box_ymin   = float(yolo_item[2])
-                    box_width  = float(yolo_item[3])
-                    box_height = float(yolo_item[4])
-                    newBox = int(box_xmin * width), int(box_ymin * height), int(box_width * width), int(box_height * height)
-                elif False:
-                    #xywh:
-                    # python.exe  hagrid_to_yolo.py --bbox_format xyxy
-                    box_xmin   = float(yolo_item[1])
-                    box_ymin   = float(yolo_item[2])
-                    box_width  = float(yolo_item[3]) - float(yolo_item[1])
-                    box_height = float(yolo_item[4]) - float(yolo_item[2])
-                    newBox = int(box_xmin * width), int(box_ymin * height), int(box_width * width), int(box_height * height)
-                elif True:
+                for yolo_fmt in strings:
+                    items = yolo_fmt.strip().split()
+                    object_id  = items[0]
+                    #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
+                    
                     #cxcywh:
-                    # python.exe  hagrid_to_yolo.py --bbox_format xyxy
-                    box_xmin   = float(yolo_item[1]) - float(yolo_item[3]) / 2.0
-                    box_ymin   = float(yolo_item[2]) - float(yolo_item[4]) / 2.0
-                    box_width  = float(yolo_item[3])
-                    box_height = float(yolo_item[4])
-                    newBox = int(box_xmin * width), int(box_ymin * height), int(box_width * width), int(box_height * height)
+                    # python.exe  hagrid_to_yolo.py --bbox_format cxcywh
+                    box_xmin   = float(items[1]) - float(items[3]) / 2.0
+                    box_ymin   = float(items[2]) - float(items[4]) / 2.0
+                    box_width  = float(items[3])
+                    box_height = float(items[4])
+                    abox = int(box_xmin * width), int(box_ymin * height), int(box_width * width), int(box_height * height)
 
-                names = id_to_names(object_id)
-                cv2.rectangle(image, newBox, (0, 255, 120), 1)
-                cv2.putText(image, names, (newBox[0], newBox[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 120), 2)
+                    names = id_to_names(object_id)
+                    cv2.rectangle(image, abox, (0, 255, 120), 1)
+                    cv2.putText(image, names, (abox[0], abox[1]-8), linefont, 0.5, (0, 255, 120), 1)
 
             if config["auto_label"]:
-                new_labelfile = labelfile.replace(".txt", "_auto_hand.txt")
+                new_labelfile = labelfile.replace(".txt", "_mp_hand.txt")
                 file = open(new_labelfile, "w")
                 for each in strings:
                     file.write(each)
@@ -161,21 +139,32 @@ def auto_label_face_for_yolo(imagefiles = [], show=False):
 
             if config["show_image"]:
                 cv2.imshow('Face detection', image)
-                time.sleep(1)
+                wait_time = config["show_image_wait"]
+                if wait_time > 0:
+                    time.sleep(wait_time)
                 if (cv2.waitKey(10) & 0xFF == ord(EXIT_KEY)):
                     break
 
 if __name__ == '__main__':
     config = {
-        "show_image"        : False,
-        "dirs"              : image_dir,
-        "auto_label"        : True,     #   xxxx.txt -> xxxx.auto_hand.txt
+        "show_image"            : False,
+        "show_image_wait"       : 0,
+        "dirs"                  : image_dir,
+        "face_detect"           : True,
+        "face_detect_thresh"    : 0.2,
+        "auto_label"            : True,     #   xxxx.txt -> xxxx.auto_hand.txt
     }
 
-    config = {
-        "show_image"        : True,
-        "dirs"              : image_dir,
-        "auto_label"        : False,
-    }
+    DEBUG = True
+
+    if DEBUG:
+        config = {
+            "show_image"            : True,
+            "show_image_wait"       : 0.3,
+            "dirs"                  : image_dir,
+            "face_detect"           : False,
+            "face_detect_thresh"    : 0.2,
+            "auto_label"            : False,
+        }
     images = get_all_image_in_dir(config["dirs"])
     auto_label_face_for_yolo(images, config)
