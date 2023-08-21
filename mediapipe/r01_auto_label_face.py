@@ -16,15 +16,32 @@ YOLO_IMAGE_SIZE = (320,320)
 YOLO_HUMAN_BODY_ID = 0
 YOLO_HUMAN_FACE_ID = 1
 YOLO_HUMAN_HAND_ID = 2
+YOLO_HUMAN_HAND_ONE   = 3
+YOLO_HUMAN_HAND_TWO   = 4     #peace, peace_inv, two_up
+YOLO_HUMAN_HAND_THREE = 5
+YOLO_HUMAN_HAND_FOUR  = 6
+YOLO_HUMAN_HAND_FIVE  = 7   #five,stop
+YOLO_HUMAN_HAND_LIKE  = 8
+YOLO_HUMAN_HAND_CALL  = 9
+YOLO_HUMAN_HAND_FIST  = 10
 
 id_names = {
-    YOLO_HUMAN_BODY_ID: "human",
-    YOLO_HUMAN_FACE_ID: "face",
-    YOLO_HUMAN_HAND_ID: "hand",
+    YOLO_HUMAN_BODY_ID    : "human",
+    YOLO_HUMAN_FACE_ID    : "face",
+    YOLO_HUMAN_HAND_ID    : "hand",
+    YOLO_HUMAN_HAND_ONE   : "one",
+    YOLO_HUMAN_HAND_TWO   : "two",
+    YOLO_HUMAN_HAND_THREE : "three",
+    YOLO_HUMAN_HAND_FOUR  : "four",
+    YOLO_HUMAN_HAND_FIVE  : "five",
+    YOLO_HUMAN_HAND_LIKE  : "like",
+    YOLO_HUMAN_HAND_CALL  : "call",
+    YOLO_HUMAN_HAND_FIST  : "fist",
 }
 
 image_dir = [
-    '/home/leo/myhome/hagrid/download/subsample/train'
+    #'/home/leo/myhome/hagrid/download/subsample/train',
+    '/home/leo/hand_fullset/train'
 ]
 
 linefont = cv2.FONT_HERSHEY_SIMPLEX
@@ -48,17 +65,80 @@ def get_images_in_current_dir(dir):
             select_files.append(os.path.join(dir, onefile))
     return select_files
 
-def get_all_image_in_dir(dir_list =[]):
+def get_all_image_in_dir(dir_list =[], subsample=100000):
     images = []
     for one_dir in dir_list:
         for entry in os.listdir(one_dir):
             path = os.path.join(one_dir, entry)
             if os.path.isdir(path):
                 imgs = get_images_in_current_dir(path)
+
+                if (len(imgs) >= subsample):
+                    imgs = imgs[0:subsample]
+
                 images.extend(imgs)
                 print(len(imgs), "totals:", len(images), path)
         break #quick debug
     return images
+
+def body_rect_from_landmark(landmarks):
+
+    margin = landmarks[mp_pose.PoseLandmark.LEFT_EYE].x - landmarks[mp_pose.PoseLandmark.RIGHT_EYE].x,
+    margin = margin[0]
+    #print(margin)
+
+    all_x = [
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].x - margin,
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].x + margin,
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].x,
+        landmarks[mp_pose.PoseLandmark.LEFT_EAR].x,
+        landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].x,
+        landmarks[mp_pose.PoseLandmark.LEFT_HIP].x,
+        landmarks[mp_pose.PoseLandmark.MOUTH_LEFT].x,
+        #landmarks[mp_pose.PoseLandmark.LEFT_KNEE].x,
+        #landmarks[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].x,
+        landmarks[mp_pose.PoseLandmark.RIGHT_EYE].x,
+        landmarks[mp_pose.PoseLandmark.RIGHT_EAR].x,
+        landmarks[mp_pose.PoseLandmark.MOUTH_RIGHT].x,
+        landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER].x,
+        landmarks[mp_pose.PoseLandmark.RIGHT_HIP].x,
+        #landmarks[mp_pose.PoseLandmark.RIGHT_KNEE].x,
+        #landmarks[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].x,
+    ]
+    all_y = [
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].y - margin,
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].y + margin,
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].y,
+        landmarks[mp_pose.PoseLandmark.LEFT_EAR].y,
+        landmarks[mp_pose.PoseLandmark.MOUTH_LEFT].y,
+        landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER].y,
+        landmarks[mp_pose.PoseLandmark.LEFT_HIP].y,
+        #landmarks[mp_pose.PoseLandmark.LEFT_KNEE].y,
+        #landmarks[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y,
+        #
+        landmarks[mp_pose.PoseLandmark.RIGHT_EYE].y,
+        landmarks[mp_pose.PoseLandmark.RIGHT_EAR].y,
+        landmarks[mp_pose.PoseLandmark.MOUTH_RIGHT].y,
+        landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER].y,
+        landmarks[mp_pose.PoseLandmark.RIGHT_HIP].y,
+        #landmarks[mp_pose.PoseLandmark.RIGHT_KNEE].y,
+        #landmarks[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].y,
+    ]
+
+    MAX_COOR = 0.99
+
+    x_coors = []
+    for each in all_x:
+        if each <= MAX_COOR:
+            x_coors.append(each)
+    y_coors = []
+    for each in all_y:
+        if each <= MAX_COOR:
+            y_coors.append(each)
+    #print(all_x, all_y)
+    #print(x_coors, y_coors)
+    core = (min(x_coors), min(y_coors), max(x_coors), max(y_coors))
+    return core
 
 def auto_label_face_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
@@ -99,6 +179,7 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
             faces_label = []
+            bodys_label = []
 
             if config["pose_detect"]:
                 pose_ret = pose_detection.process(image)
@@ -129,6 +210,19 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     cv2.putText( image, f'knee', (int(knee[0]), int(knee[1])), linefont, 0.5, pose_cc, 1)
                     cv2.putText( image, f'foot', (int(foot[0]), int(foot[1])), linefont, 0.5, pose_cc, 1)
                     #print(f"foot:{foot} frame.shape:{frame.shape}")
+                    body_rect = body_rect_from_landmark(pose_ret.pose_landmarks.landmark)
+                    #print("body_rect:", body_rect)
+                    #
+                    body_xywh = (body_rect[0]*width, body_rect[1]*height, (body_rect[2]-body_rect[0])*width, (body_rect[3]-body_rect[1])*height)
+                    body_xywh = int(body_xywh[0]), int(body_xywh[1]), int(body_xywh[2]), int(body_xywh[3])
+                    body_cc = (250, 250, 0)
+                    cv2.rectangle(image, body_xywh, body_cc, 1)
+                    cv2.putText( image, f'body', (body_xywh[0]+20, body_xywh[1] - 20), linefont, 0.5, body_cc, 1 )
+
+                    #output yolo bbox fmt:  class,cx,xy,w,h
+                    body_cxcywh = ((body_rect[0]+body_rect[2])/2.0, (body_rect[1]+body_rect[3])/2.0, body_rect[2]-body_rect[0], body_rect[3]-body_rect[1])
+                    body_info = f"{YOLO_HUMAN_BODY_ID} {body_cxcywh[0]} {body_cxcywh[1]} {body_cxcywh[2]} {body_cxcywh[3]} \n"
+                    bodys_label.append(body_info)
 
             if config['face_detect']:
                 if (results.detections):
@@ -179,6 +273,8 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     file.write(each)
                 for each in faces_label:
                     file.write(each)
+                for each in bodys_label:
+                    file.write(each)
                 file.close()
                 print(new_labelfile)
 
@@ -195,24 +291,27 @@ if __name__ == '__main__':
         "show_image"            : False,
         "show_image_wait"       : 0,
         "dirs"                  : image_dir,
+        "dirs_subsample_max"    : 1000,
         "face_detect"           : True,
-        "face_detect_thresh"    : 0.4,
+        "face_detect_thresh"    : 0.2,
         "pose_detect"           : True,
-        "pose_detect_thresh"    : 0.4,
+        "pose_detect_thresh"    : 0.1,
         "auto_label"            : True,     #   xxxx.jpg -> xxxx.auto_hand.txt
     }
 
-    DEBUG = True
-    if DEBUG:
+    DEBUG = 0
+    if DEBUG == 0:
+        #
         config = {
             "show_image"            : True,
-            "show_image_wait"       : 1.2,
+            "show_image_wait"       : 0.6,
             "dirs"                  : image_dir,
+            "dirs_subsample_max"    : 1000,
             "face_detect"           : True,
             "face_detect_thresh"    : 0.2,
             "pose_detect"           : True,
-            "pose_detect_thresh"    : 0.2,
+            "pose_detect_thresh"    : 0.1,
             "auto_label"            : False,
         }
-    images = get_all_image_in_dir(config["dirs"])
+    images = get_all_image_in_dir(config["dirs"], config["dirs_subsample_max"])
     auto_label_face_for_yolo(images, config)

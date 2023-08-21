@@ -27,7 +27,8 @@ if __name__ == '__main__':
     # ->
     #F:\hagrid\download\subsample\subsample\train_labels\call\5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb.txt
 
-    path = "/home/leo/myhome/hagrid/download/subsample/train_labels"
+    #path = "/home/leo/myhome/hagrid/download/subsample/train_labels"
+    path = "/home/leo/hand_fullset/train_labels"
 
     all_files = get_all_files_in_dir([path])
 
@@ -39,11 +40,17 @@ if __name__ == '__main__':
         else:
             remove_files.append(each)
 
-    for onefile in remove_files:
-        filename_new = os.path.join(path, onefile)
-        os.remove(filename_new)
+    if len(select_files) > 0:
+        for onefile in remove_files:
+            filename_new = os.path.join(path, onefile)
+            os.remove(filename_new)
+    else:
+        print("no *mp_hand.txt or all is processed")
 
     for onefile in select_files:
         filename = os.path.join(path, onefile)
         filename_new = filename.replace("_mp_hand.txt", ".txt")
         os.rename(filename, filename_new)
+
+    print(f"select_files:{len(select_files)}")
+    print(f"remove_files:{len(remove_files)}")
