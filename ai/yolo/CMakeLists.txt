@@ -8,18 +8,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fPIE")
 
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}")
-#set(CAFFE_DIR "${ROOT_DIR}/../caffe_hisi")
-set(CAFFE_DIR "/home/leo/github/caffe")
+set(CAFFE_DIR "/home/leo/imvt/imvt.caffe")
+set(CAFFE_INSTALL "/home/leo/imvt/imvt.caffe/build4090/install")
 
-#/home/leo/github/caffe/build/src/caffe/proto/caffe.pb.h
+#/home/leo/imvt/imvt.caffe/build/src/caffe/proto/caffe.pb.h
 
 include_directories("${ROOT_DIR}/.")
 include_directories("${CAFFE_DIR}/include")
-include_directories("${CAFFE_DIR}/build/src")	#"caffe/proto/caffe.pb.h"
-include_directories("${CAFFE_DIR}/build/install/include")	#"caffe/proto/caffe.pb.h"
-
-include_directories("${CAFFE_DIR}/.build_release/include")	#"caffe/proto/caffe.pb.h"
+include_directories("${CAFFE_DIR}/build/src")	    #"caffe/proto/caffe.pb.h"
 include_directories("${CAFFE_DIR}/build/include")	#"caffe/proto/caffe.pb.h"
+include_directories("${CAFFE_INSTALL}/include") 	#"caffe/proto/caffe.pb.h"
 
 #include_directories("/usr/local/include")	#opencv
 
@@ -58,11 +56,9 @@ find_package( OpenCV REQUIRED )
 include_directories(${OpenCV_INCLUDE_DIRS})
 message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
 
-
 # If you only built the library
-list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi/.build_release")
-list (APPEND CMAKE_PREFIX_PATH "/home/leo/github/caffe/build/install")
 #list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi/.build_release")
+list (APPEND CMAKE_PREFIX_PATH "${CAFFE_INSTALL}")
 
 # If you installed the library there
 #list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi")

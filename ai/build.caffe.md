@@ -26,52 +26,29 @@ sudo apt-get install libhdf5-dev
 sudo apt-get -y install libboost-all-dev
 sudo apt-get -y install libboost-python-dev
 
-sudo apt-get -y install libopencv-dev
+sudo apt-get -y install libopencv-dev=3.4
 ```
 
 ### Build Caffe on Ubuntu
-```
+```bash
 
-mkdir build
+## check opencv:
+export PKG_CONFIG_PATH=/home/leo/myhome/download/opencv/install/lib/pkgconfig:$PKG_CONFIG_PATH
+
+pkg-config --cflags opencv; pkg-config --libs opencv; pkg-config opencv --modversion
+
+mkdir build4090; cd build4090
 cmake ..
 make all
 make install
 
-```
-
-### hisi
-```
-cd docker                                   # 包含Dockerfile
-
-docker build -t ss928_image .
+#install: /home/leo/imvt/imvt.caffe/build4090/install
 
 ```
 
-
-### Docker Ubuntu
-```rust
-
-sudo apt update
-sudo apt install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io              //install docker
-
-
-```
-
-### Docker Caffe image:
-```
-
-sudo docker pull bvlc/caffe:cpu
-
-sudo apt-get install libzmq3-dev
-
-```
 
 ### run yolo tracker
-```
+```bash
 
 /home/leo/hand/ai/yolo_build
 
@@ -79,5 +56,7 @@ sudo apt-get install libzmq3-dev
 
 ./yolo x_yolov2-voc20.edited.prototxt x_yolov2-voc20.caffemodel leo.png 
 
+./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe_yolo3/imvt20_yolo2.caffemodel leo.png
+./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel leo.png
 
 ```

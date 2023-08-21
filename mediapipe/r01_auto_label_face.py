@@ -106,8 +106,8 @@ def body_rect_from_landmark(landmarks):
         #landmarks[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].x,
     ]
     all_y = [
-        landmarks[mp_pose.PoseLandmark.LEFT_EYE].y - margin,
-        landmarks[mp_pose.PoseLandmark.LEFT_EYE].y + margin,
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].y - margin*2,  #two eye
+        landmarks[mp_pose.PoseLandmark.LEFT_EYE].y + margin*2,
         landmarks[mp_pose.PoseLandmark.LEFT_EYE].y,
         landmarks[mp_pose.PoseLandmark.LEFT_EAR].y,
         landmarks[mp_pose.PoseLandmark.MOUTH_LEFT].y,
@@ -299,7 +299,7 @@ if __name__ == '__main__':
         "auto_label"            : True,     #   xxxx.jpg -> xxxx.auto_hand.txt
     }
 
-    DEBUG = 0
+    DEBUG = 1
     if DEBUG == 0:
         #
         config = {
@@ -310,6 +310,19 @@ if __name__ == '__main__':
             "face_detect"           : True,
             "face_detect_thresh"    : 0.2,
             "pose_detect"           : True,
+            "pose_detect_thresh"    : 0.1,
+            "auto_label"            : False,
+        }
+    elif DEBUG == 1:
+        # show label data
+        config = {
+            "show_image"            : True,
+            "show_image_wait"       : 1.0,
+            "dirs"                  : image_dir,
+            "dirs_subsample_max"    : 1000,
+            "face_detect"           : False,
+            "face_detect_thresh"    : 0.2,
+            "pose_detect"           : False,
             "pose_detect_thresh"    : 0.1,
             "auto_label"            : False,
         }
