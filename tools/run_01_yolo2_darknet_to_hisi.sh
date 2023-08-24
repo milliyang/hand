@@ -5,9 +5,8 @@ COLOR_GREEN="\e[32;1m"
 COLOR_END="\e[0m"
 
 # ensure docker running:
-docker exec darknet2caffe001
+docker start darknet2caffe001
 docker start caffe111
-
 
 
 # caffe docker
@@ -35,7 +34,7 @@ OUT2=/home/leo/imvt/zcam_yolo/zcam_ai_20_y2_s416_v001.om
 
 ls -al ${OUT1}
 
-cp 
+#cp /home/leo/imvt/zcam_yolo/hi928docker/yolo/model_yuv/yolov2_original.om /home/leo/imvt/zcam_yolo/zcam_ai_20_y2_s416_v001.om
 cp ${OUT1} ${OUT2}
 
 md5sum ${OUT1}
