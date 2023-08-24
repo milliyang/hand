@@ -10,9 +10,11 @@ docker start caffe_acmt
 docker exec -it caffe_acmt /bin/bash
 
 #docker rm caffe_acmt
+```
 
 
-# amct
+# setup hisi patch
+```bash
 cd /root/host/imvt/zcam_yolo/hi928docker/Resources/amct_caffe
 tar zxvf amct_caffe_sample.tar.gz
 tar zxvf caffe_patch.tar.gz
@@ -23,12 +25,69 @@ tar zxvf caffe_patch.tar.gz
 find /usr/ -name "hotwheels" 
 
 
+#protobuf error, downgrade version:
+pip3 install protobuf==3.13.0
+
+```
+
+# run yolo
+```bash 
+docker exec -it caffe_acmt /bin/bash
+
+export PYTHONPATH=/root/host/imvt/imvt.caffe.amct/python:$PYTHONPATH
+
+cd /root/host/imvt/zcam_yolo/hi928docker/amct_sample/yolo
+
+#无量化
+python3 ./src/yolo_sample.py \
+--model_file pre_model/imvt20_yolo2.prototxt \
+--weights_file pre_model/imvt20_yolo2.caffemodel \
+--caffe_dir /root/host/imvt/imvt.caffe.amct/ \
+--cpu \
+--iterations 1 \
+--pre_test 
+
+#量化
+python3 ./src/yolo_sample.py \
+--model_file pre_model/imvt20_yolo2.prototxt \
+--weights_file pre_model/imvt20_yolo2.caffemodel \
+--caffe_dir /root/host/imvt/imvt.caffe.amct/ \
+--iterations 1 \
+--cpu 
+
+#转换模型
+python3 ./src/convert_model.py \
+--model_file pre_model/imvt20_yolo2.prototxt \
+--weights_file pre_model/imvt20_yolo2.caffemodel \
+--caffe_dir /root/host/imvt/imvt.caffe.amct/ \
+--cpu  \
+--iterations 1 \
+--record_file tmp/scale_offset_record.txt
+
+```
+
+
+87 * 0.00392 = 0.34
+
+0.843262
+
+
+B = 98  / 255 = 0.3843137254901961
+G = 107 / 255 = 0.4196078431372549
+R = 118 / 255 = 0.4627450980392157
+
+98 * 0.00392156 = 0.38431288
+118* 0.00392156 = 0.46274408
+
+
+
+# run resnet50
+```bash 
+docker exec -it caffe_acmt /bin/bash
+
 export PYTHONPATH=/root/host/imvt/imvt.caffe.amct/python:$PYTHONPATH
 
 cd /root/host/imvt/zcam_yolo/hi928docker/amct_sample/resnet50
-
-#protobuf error, downgrade version:
-pip3 install protobuf==3.13.0
 
 #无量化
 python3 ./src/ResNet50_sample.py \
@@ -52,6 +111,8 @@ python3 ./src/convert_model.py \
 --caffe_dir /root/host/imvt/imvt.caffe.amct/ \
 --cpu  \
 --record_file pre_model/record.txt
+
+```
 
 
 

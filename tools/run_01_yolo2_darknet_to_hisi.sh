@@ -34,6 +34,8 @@ OUT1=/home/leo/imvt/zcam_yolo/hi928docker/yolo/model_yuv/yolov2_original.om
 OUT2=/home/leo/imvt/zcam_yolo/zcam_ai_20_y2_s416_v001.om
 
 ls -al ${OUT1}
+
+cp 
 cp ${OUT1} ${OUT2}
 
 md5sum ${OUT1}
