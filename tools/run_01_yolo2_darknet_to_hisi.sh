@@ -4,13 +4,16 @@ COLOR_RED="\e[31;1m"
 COLOR_GREEN="\e[32;1m"
 COLOR_END="\e[0m"
 
+# ensure docker running:
+docker exec darknet2caffe001
+docker start caffe111
+
+
 
 # caffe docker
     # docker exec -it  darknet2caffe001 /bin/bash
-    # cd 
 
-
-docker exec darknet2caffe001 /workspace/imvt/imvt.caffe/imvt/darknet2caffe/docker_run_yolo2_to_caffe.sh
+docker exec darknet2caffe001 /root/host/imvt/imvt.caffe/imvt/darknet2caffe/docker_run_yolo2_to_caffe.sh
 #docker exec darknet2caffe001 /workspace/imvt/imvt.caffe/imvt/darknet2caffe_yolo3/docker_run_yolo2_to_caffe.sh
 #output:
 #   /home/leo/imvt/imvt.caffe/imvt/darknet2caffe_yolo3
