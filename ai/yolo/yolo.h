@@ -62,7 +62,7 @@ struct region_layer {
 
     int mask[3]; //012/345/678, 3 layer output for yolov3, should be equal n
     int sub_layer_num;
-	int sub_layer_continue_memory;
+    int sub_layer_continue_memory;
     struct yolov3_layer sub_layer[3];
     //int outputs; // 13*13*
 };

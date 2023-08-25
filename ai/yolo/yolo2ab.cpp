@@ -573,9 +573,8 @@ void Yolo2AB::PostProcess(const cv::Mat &img)
     const float *begin = output_layer->cpu_data();
     layer.output = (float*)begin;
 
-    printf("network_output size:%d\n", layer.outputs*layer.batch * sizeof(float));
-
 #if 0
+    printf("network_output size:%d\n", layer.outputs*layer.batch * (int) sizeof(float));
     FILE *ptr;
     fopen_s(&ptr, "network_output.bin", "wb");
     fwrite((void*)begin, 1, layer.outputs*layer.batch * sizeof(float), ptr);

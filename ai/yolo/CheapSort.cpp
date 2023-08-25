@@ -1,7 +1,9 @@
 #include "CheapSort.h"
 
-#define NONE "\033[m"
-#define RED "\033[0;32;31m"
+#ifdef CONFIG_SPDLOG
+#define LOG_TAG "trker"
+#include "log.h"
+#endif
 
 // Computes IOU between two bounding boxes
 float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
@@ -99,7 +101,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
             it++;
         } else {
             it = trackers_.erase(it);
-            printf("[tracker] outside id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
+            LOGD("outside id:%d cls:%d %s", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
         }
     }
 
@@ -109,7 +111,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     //bugfix: Leo
     if (trkNum <= 0) {
-        printf(RED "[warning] Leo hotfix\n\n\n" NONE);
+        LOGW("[warning] Leo hotfix\n\n");
         Init(t_boxes);
         return tracking_result_;
     }
@@ -163,7 +165,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
         //
     }
 
-    //printf("filter out matched with low IOU\n");
+    //LOGD("filter out matched with low IOU");
 
     // filter out matched with low IOU
     matchedPairs.clear();
@@ -216,7 +218,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     for (auto it = trackers_.begin(); it != trackers_.end();) {
         // remove dead tracklet
         if ((*it).m_time_since_update > max_age_) {
-            printf("[tracker] expire id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
+            LOGD("expire id:%d cls:%d %s", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
             it = trackers_.erase(it);
         } else {
             ++it;
@@ -226,7 +228,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
 #if 1
     if (trackers_.size() >= TRK_NUM) {
-        printf(RED "[warn] trackers:%d\n" NONE, (int) trackers_.size());
+        LOGW("[warn] trackers:%d", (int) trackers_.size());
     }
 #endif
 

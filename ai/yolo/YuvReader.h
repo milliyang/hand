@@ -9,21 +9,21 @@ using std::string;
 class YuvReader
 {
 public:
-	YuvReader();
-	~YuvReader();
+    YuvReader();
+    ~YuvReader();
 
-	void Init(const string &file, int width, int height);
-	void Read(cv::Mat &mat);
+    void Init(const string &file, int width, int height);
+    void Read(cv::Mat &mat);
 
 private:
-	int inited_;
-	string movFile_;
-	int width_;
-	int height_;
+    int inited_;
+    string movFile_;
+    int width_;
+    int height_;
 
-	int err_;
-	FILE *fin_;
-	int size_;
-	unsigned char *buffer_;
+    int err_;
+    FILE *fin_;
+    int size_;
+    unsigned char *buffer_;
 };
 

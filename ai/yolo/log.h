@@ -50,29 +50,29 @@
 #define LOG_LEVEL_V 5
 
 #ifdef LOG_IMPL
-    int imvt_log_init(const char *path);
-    int imvt_log(int level, const char * fmt, ...);
+int imvt_log_init(const char *path);
+int imvt_log(int level, const char * fmt, ...);
 
-    #define LOG_INIT imvt_log_init
-    #define LOGV(fmt, ...) imvt_log(LOG_LEVEL_V, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
-    #define LOGI(fmt, ...) imvt_log(LOG_LEVEL_I, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
-    #define LOGD(fmt, ...) imvt_log(LOG_LEVEL_D, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
-    #define LOGW(fmt, ...) imvt_log(LOG_LEVEL_W, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
-    #define LOGE(fmt, ...) imvt_log(LOG_LEVEL_E, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
+#define LOG_INIT imvt_log_init
+#define LOGV(fmt, ...) imvt_log(LOG_LEVEL_V, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
+#define LOGI(fmt, ...) imvt_log(LOG_LEVEL_I, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
+#define LOGD(fmt, ...) imvt_log(LOG_LEVEL_D, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
+#define LOGW(fmt, ...) imvt_log(LOG_LEVEL_W, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
+#define LOGE(fmt, ...) imvt_log(LOG_LEVEL_E, "[%s] "fmt, LOG_TAG, ##__VA_ARGS__)
 #else
-    #include <stdio.h>
-    #define LOG_INIT(a)
-    //c++11 fix: "[%s]\t" fmt"\n" space before fmt
-    #define LOGV(fmt, ...) fprintf(stderr, BLUE"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
-    #define LOGI(fmt, ...) fprintf(stderr, LIGHT_GREEN"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
-    #define LOGD(fmt, ...) fprintf(stderr, NONE"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
-    #define LOGW(fmt, ...) fprintf(stderr, BROWN"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
-    #define LOGE(fmt, ...) fprintf(stderr, LIGHT_RED"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
-    // #define LOGV(fmt, ...) fprintf(stderr, BLUE"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
-    // #define LOGI(fmt, ...) fprintf(stderr, LIGHT_GREEN"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
-    // #define LOGD(fmt, ...) fprintf(stderr, NONE"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
-    // #define LOGW(fmt, ...) fprintf(stderr, BROWN"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
-    // #define LOGE(fmt, ...) fprintf(stderr, LIGHT_RED"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
+#include <stdio.h>
+#define LOG_INIT(a)
+//c++11 fix: "[%s]\t" fmt"\n" space before fmt
+#define LOGV(fmt, ...) fprintf(stderr, BLUE"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
+#define LOGI(fmt, ...) fprintf(stderr, LIGHT_GREEN"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
+#define LOGD(fmt, ...) fprintf(stderr, NONE"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
+#define LOGW(fmt, ...) fprintf(stderr, BROWN"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
+#define LOGE(fmt, ...) fprintf(stderr, LIGHT_RED"[%s]\t" fmt"\n", LOG_TAG, ##__VA_ARGS__)
+// #define LOGV(fmt, ...) fprintf(stderr, BLUE"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
+// #define LOGI(fmt, ...) fprintf(stderr, LIGHT_GREEN"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
+// #define LOGD(fmt, ...) fprintf(stderr, NONE"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
+// #define LOGW(fmt, ...) fprintf(stderr, BROWN"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
+// #define LOGE(fmt, ...) fprintf(stderr, LIGHT_RED"[%s]\t"fmt, LOG_TAG, ##__VA_ARGS__)
 #endif
 
 #define log_module_v(module, fmt, ...) fprintf(stderr, BLUE"[%s]"fmt, module, ##__VA_ARGS__)
