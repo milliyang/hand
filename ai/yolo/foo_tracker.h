@@ -4,7 +4,6 @@
 
 class FooTracker
 {
-
     enum MODE {
         PTZ    = 0, //always tracking the sample object; Human intervention(select)
         AF     = 1, //some times may switch tracking target.

@@ -87,10 +87,32 @@ void drawYoloResult(cv::Mat &frame, int seq, std::vector<YoloBox> &yolo_boxs)
     }
 }
 
-void runAndDrawCheapSortTracking(CheapSort &sort, cv::Mat frame, int seq, std::vector<YoloBox> &yolo_boxs)
+void simple_draw_yolo_result(cv::Mat frame, int seq, std::vector<YoloBox> &yolo_boxs)
+{
+    cv::Rect_<float> box;
+    cv::Point pt_text;
+    for (auto ybox : yolo_boxs) {
+        box.x = ybox.left;
+        box.y = ybox.top;
+        box.width = ybox.right - ybox.left;
+        box.height = ybox.bottom - ybox.top;
+
+        // then put the text itself
+        pt_text.x = box.x;
+        pt_text.y = box.y > 2 ? box.y - 5 : 0;
+        stringstream ss;
+        ss.precision(2);
+        ss << "(" << -1 << ") " << ybox.class_name << " P|" << ybox.confidence;
+
+        cv::rectangle(frame, box, cv::Scalar(255, 0, 0));
+        putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 2, 8);
+    }
+}
+
+void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat frame, int seq, std::vector<YoloBox> &yolo_boxs)
 {
     // format to CheapSort box
-    vector<TrackingBox> track_boxes;
+    std::vector<TrackingBox> track_boxes;
     TrackingBox t_box;
     for (auto ybox : yolo_boxs) {
         t_box.frame = seq;
@@ -105,12 +127,12 @@ void runAndDrawCheapSortTracking(CheapSort &sort, cv::Mat frame, int seq, std::v
         t_box.confidence = ybox.confidence;
         track_boxes.push_back(t_box);
     }
-    vector<TrackingBox> track_result = sort.Run(track_boxes);
+    std::vector<TrackingBox> track_result = sort.Run(track_boxes);
     cv::Point textOrg;
     string label;
 
     for (auto result : track_result) {
-        std::cout << "Track:" << result.class_name << " idx:" << result.class_idx << " confidence:" << result.confidence << " " << result.box.x << " " << result.box.y << " id:" << result.id << std::endl;
+        //std::cout << "Track:" << result.class_name << " idx:" << result.class_idx << " confidence:" << result.confidence << " " << result.box.x << " " << result.box.y << " id:" << result.id << std::endl;
         //rectangle(Mat& img, Rect rec, const Scalar& color, int thickness=1, int lineType=8, int shift=0 )
         //cv::Rect rect(result.xbox);
         cv::rectangle(frame, result.box, cv::Scalar(255, 0, 0));
@@ -119,8 +141,9 @@ void runAndDrawCheapSortTracking(CheapSort &sort, cv::Mat frame, int seq, std::v
         textOrg.x = result.box.x;
         textOrg.y = result.box.y > 2 ? result.box.y - 5 : 0;
         stringstream ss;
+        ss.precision(2);
         ss << "(" << result.id << ") " << result.class_name << " P|" << result.confidence; //result.class_name;
-        putText(frame, ss.str(), textOrg, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 2, 8);
+        putText(frame, ss.str(), textOrg, cv::FONT_HERSHEY_SIMPLEX, 0.3, cv::Scalar(0, 250, 0), 2, 8);
     }
 }
 
@@ -134,15 +157,27 @@ void drawCvTrackingResult(bool ok, cv::Mat frame, cv::Rect2d cv_box)
     }
 }
 
+std::vector<YoloBox> selected_person_face_class_only(std::vector<YoloBox> &yolo_boxs)
+{
+    std::vector<YoloBox> selected;
+    for (int i = 0; i < yolo_boxs.size(); i++) {
+        if (yolo_boxs[i].class_idx <= 2 && yolo_boxs[i].confidence >= 0.3f) {
+            selected.push_back(yolo_boxs[i]);
+        }
+    }
+    return selected;
+}
+
 int main(int argc, char **argv)
 {
     int ret;
     int detect = 0;
     int source = 0;
 
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0]
-                  << " deploy.prototxt network.caffemodel xxx.mov" << std::endl;
+    if (argc <= 3) {
+        std::cerr << "Usage: "
+                << argv[0] << " deploy.prototxt network.caffemodel xxx.mov" << std::endl
+                << argv[0] << " deploy.prototxt network.caffemodel /dev/video0" << std::endl;
         return 1;
     }
 
@@ -193,18 +228,27 @@ int main(int argc, char **argv)
             double timer = (double)cv::getTickCount();
             //int ok = imvt_cv_tracking_detect(frame, cv_box);
             //std::vector<YoloBox> yolo_boxs;
-            yolo_boxs = yolo.Run(frame);
-            runFooTracker(fooTracker, frame, yolo_boxs);
-            drawYoloResult(frame, frame_seq, yolo_boxs);
+            std::vector<YoloBox> yolo_boxs = yolo.Run(frame);
+            std::vector<YoloBox> selected = selected_person_face_class_only(yolo_boxs);
+
+#if 0
+            runFooTracker(fooTracker, frame, selected);
+            drawYoloResult(frame, frame_seq, selected);
             drawFooTracker(fooTracker, frame);
-            //runAndDrawCheapSortTracking();
+#elif 1
+            run_and_raw_with_cheap_sort_tracker(cheap_sort, frame, frame_seq, selected);
+#else
+            simple_draw_yolo_result(frame, frame_seq, selected);
+#endif
             //drawCvTrackingResult(ok, frame, cv_box);
 
             // Calculate Frames per second (FPS)
             float fps = cv::getTickFrequency() / ((double)cv::getTickCount() - timer);
-            stringstream sfps;
-            sfps << "FPS: " << fps;
-            putText(frame, sfps.str(), cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 2, 8);
+            stringstream ss;
+            ss.setf(std::ios::fixed);
+            ss.precision(2);
+            ss << "FPS: " << fps;
+            putText(frame, ss.str(), cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.3, cv::Scalar(0, 255, 0), 2, 8);
         }
 
         // Display the resulting frame

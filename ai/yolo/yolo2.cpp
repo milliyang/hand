@@ -815,13 +815,13 @@ void Yolo2::PostProcess(const cv::Mat &img)
         printf("not support network\n");
         return;
     }
-    printf("net_->num_outputs():%d\n", net_->num_outputs());
+    //printf("net_->num_outputs():%d\n", net_->num_outputs());
 
     if (net_->num_outputs() > 1) {
         // not linear network output (not flatten, not concat)
         layer.sub_layer_continue_memory = 0;
         layer.sub_layer_num = net_->num_outputs();
-        printf("layer.sub_layer_num:%d\n", layer.sub_layer_num);
+        //printf("layer.sub_layer_num:%d\n", layer.sub_layer_num);
     }
 
     //fill in network output pointer:
@@ -844,9 +844,8 @@ void Yolo2::PostProcess(const cv::Mat &img)
         layer.sub_layer[sub_layer_idx].output = (float *)begin;
         layer.output = (float*)begin; //always assign the last output
 
+#if TRACK_ALL_LAYER
         printf("blob[%d] width:%d height:%d channel:%d \n", j, output_layer->width(), output_layer->height(), 0/*output_layer*/);
-
-#if 1
         {
             FILE *ptr;
             ptr = fopen("network_output.bin", "wb");
@@ -855,7 +854,7 @@ void Yolo2::PostProcess(const cv::Mat &img)
         }
 #endif
 
-#if TRACK_ALL_LAYER || 1
+#if TRACK_ALL_LAYER
         //Hack,dump
         for (int i = 0; i < 10; i++) {
             printf("network output[%d] idx:[%d]:%f\n", j, i, begin[i]);

@@ -15,36 +15,41 @@
 HungarianAlgorithm::HungarianAlgorithm(){}
 HungarianAlgorithm::~HungarianAlgorithm(){}
 
-
 //********************************************************//
 // A single function wrapper for solving assignment problem.
 //********************************************************//
-double HungarianAlgorithm::Solve(vector<vector<double>>& DistMatrix, vector<int>& Assignment)
+float HungarianAlgorithm::Solve(vector<vector<float>>& DistMatrix, vector<int>& Assignment)
 {
 	unsigned int nRows = DistMatrix.size();
+	if (nRows <= 0) {
+		printf("nRows:%d -------------------------------\n", nRows);
+	}
 	unsigned int nCols = DistMatrix[0].size();
+	if (nCols <= 0) {
+		printf("nCols:%d -------------------------------\n", nCols);
+	}
 
-	double *distMatrixIn = new double[nRows * nCols];
-	int *assignment = new int[nRows];
-	double cost = 0.0;
+	float *array_distMatrixIn = new float[nRows * nCols];
+	int   *array_assignment   = new int[nRows];
+	float cost = 0.0;
 
-	// Fill in the distMatrixIn. Mind the index is "i + nRows * j".
-	// Here the cost matrix of size MxN is defined as a double precision array of N*M elements. 
+	// Fill in the array_distMatrixIn. Mind the index is "i + nRows * j".
+	// Here the cost matrix of size MxN is defined as a float precision array of N*M elements. 
 	// In the solving functions matrices are seen to be saved MATLAB-internally in row-order.
 	// (i.e. the matrix [1 2; 3 4] will be stored as a vector [1 3 2 4], NOT [1 2 3 4]).
 	for (unsigned int i = 0; i < nRows; i++)
 		for (unsigned int j = 0; j < nCols; j++)
-			distMatrixIn[i + nRows * j] = DistMatrix[i][j];
+			array_distMatrixIn[i + nRows * j] = DistMatrix[i][j];
 	
 	// call solving function
-	assignmentoptimal(assignment, &cost, distMatrixIn, nRows, nCols);
+	assignmentoptimal(array_assignment, &cost, array_distMatrixIn, nRows, nCols);
 
 	Assignment.clear();
 	for (unsigned int r = 0; r < nRows; r++)
-		Assignment.push_back(assignment[r]);
+		Assignment.push_back(array_assignment[r]);
 
-	delete[] distMatrixIn;
-	delete[] assignment;
+	delete[] array_distMatrixIn;
+	delete[] array_assignment;
 	return cost;
 }
 
@@ -52,9 +57,9 @@ double HungarianAlgorithm::Solve(vector<vector<double>>& DistMatrix, vector<int>
 //********************************************************//
 // Solve optimal solution for assignment problem using Munkres algorithm, also known as Hungarian Algorithm.
 //********************************************************//
-void HungarianAlgorithm::assignmentoptimal(int *assignment, double *cost, double *distMatrixIn, int nOfRows, int nOfColumns)
+void HungarianAlgorithm::assignmentoptimal(int *assignment, float *cost, float *distMatrixIn, int nOfRows, int nOfColumns)
 {
-	double *distMatrix, *distMatrixTemp, *distMatrixEnd, *columnEnd, value, minValue;
+	float *distMatrix, *distMatrixTemp, *distMatrixEnd, *columnEnd, value, minValue;
 	bool *coveredColumns, *coveredRows, *starMatrix, *newStarMatrix, *primeMatrix;
 	int nOfElements, minDim, row, col;
 
@@ -66,7 +71,7 @@ void HungarianAlgorithm::assignmentoptimal(int *assignment, double *cost, double
 	/* generate working copy of distance Matrix */
 	/* check if all matrix elements are positive */
 	nOfElements = nOfRows * nOfColumns;
-	distMatrix = (double *)malloc(nOfElements * sizeof(double));
+	distMatrix = (float *)malloc(nOfElements * sizeof(float));
 	distMatrixEnd = distMatrix + nOfElements;
 
 	for (row = 0; row<nOfElements; row++)
@@ -200,7 +205,7 @@ void HungarianAlgorithm::buildassignmentvector(int *assignment, bool *starMatrix
 }
 
 /********************************************************/
-void HungarianAlgorithm::computeassignmentcost(int *assignment, double *cost, double *distMatrix, int nOfRows)
+void HungarianAlgorithm::computeassignmentcost(int *assignment, float *cost, float *distMatrix, int nOfRows)
 {
 	int row, col;
 
@@ -213,7 +218,7 @@ void HungarianAlgorithm::computeassignmentcost(int *assignment, double *cost, do
 }
 
 /********************************************************/
-void HungarianAlgorithm::step2a(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void HungarianAlgorithm::step2a(int *assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
 	bool *starMatrixTemp, *columnEnd;
 	int col;
@@ -237,7 +242,7 @@ void HungarianAlgorithm::step2a(int *assignment, double *distMatrix, bool *starM
 }
 
 /********************************************************/
-void HungarianAlgorithm::step2b(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void HungarianAlgorithm::step2b(int *assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
 	int col, nOfCoveredColumns;
 
@@ -261,7 +266,7 @@ void HungarianAlgorithm::step2b(int *assignment, double *distMatrix, bool *starM
 }
 
 /********************************************************/
-void HungarianAlgorithm::step3(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void HungarianAlgorithm::step3(int *assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
 	bool zerosFound;
 	int row, col, starCol;
@@ -304,7 +309,7 @@ void HungarianAlgorithm::step3(int *assignment, double *distMatrix, bool *starMa
 }
 
 /********************************************************/
-void HungarianAlgorithm::step4(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim, int row, int col)
+void HungarianAlgorithm::step4(int *assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim, int row, int col)
 {
 	int n, starRow, starCol, primeRow, primeCol;
 	int nOfElements = nOfRows*nOfColumns;
@@ -358,9 +363,9 @@ void HungarianAlgorithm::step4(int *assignment, double *distMatrix, bool *starMa
 }
 
 /********************************************************/
-void HungarianAlgorithm::step5(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void HungarianAlgorithm::step5(int *assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
-	double h, value;
+	float h, value;
 	int row, col;
 
 	/* find smallest uncovered element h */

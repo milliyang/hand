@@ -1,7 +1,7 @@
 #include "CheapSort.h"
 
 // Computes IOU between two bounding boxes
-double GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
+float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
 {
     float in = (bb_test & bb_gt).area();
     float un = bb_test.area() + bb_gt.area() - in;
@@ -10,7 +10,7 @@ double GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
         return 0;
     }
 
-    return (double)(in / un);
+    return (float)(in / un);
 }
 
 void CheapSort::KalmanGlobalReset(void)
@@ -74,7 +74,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     // variables used in the for-loop
     vector<cv::Rect_<float>> predictedBoxes;
-    vector<vector<double>> iouMatrix;
+    vector<vector<float>> iouMatrix;
     vector<int> assignment;
     set<int> unmatchedDetections;
     set<int> unmatchedTrajectories;
@@ -85,19 +85,15 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     unsigned int trkNum = 0;
     unsigned int detNum = 0;
 
-    double cycle_time = 0.0;
+    float cycle_time = 0.0;
     int64 start_time = 0;
 
     if (trackers.size() == 0) {
-        //printf("Init(t_boxes);\n");
         Init(t_boxes);
         return tracking_result;
     }
 
-    ///////////////////////////////////////
     // 3.1. get predicted locations from existing trackers.
-    //printf("predictedBoxes.clear();\n");
-
     predictedBoxes.clear();
 
     for (auto it = trackers.begin(); it != trackers.end();) {
@@ -118,7 +114,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     detNum = t_boxes.size();
 
     iouMatrix.clear();
-    iouMatrix.resize(trkNum, vector<double>(detNum, 0));
+    iouMatrix.resize(trkNum, vector<float>(detNum, 0));
 
     // compute iou matrix as a distance matrix
     for (unsigned int i = 0; i < trkNum; i++)  {
@@ -235,7 +231,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
         }
     }
 #endif
-    cycle_time = (double)(cv::getTickCount() - start_time);
+    cycle_time = (float)(cv::getTickCount() - start_time);
     total_time += cycle_time / cv::getTickFrequency();
 
     // for (auto tb : tracking_result) {

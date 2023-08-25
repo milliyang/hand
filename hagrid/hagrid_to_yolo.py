@@ -75,7 +75,7 @@ def get_dataframe(conf: Union[DictConfig, ListConfig], phase: str) -> pd.DataFra
     Parameters
     ----------
     conf: Union[DictConfig, ListConfig]
-        config
+        config 
     phase: str
         phase of dataset
 

@@ -8,24 +8,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fPIE")
 
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}")
-set(CAFFE_DIR "/home/leo/imvt/imvt.caffe")
+set(CAFFE_DIR     "/home/leo/imvt/imvt.caffe")
 set(CAFFE_INSTALL "/home/leo/imvt/imvt.caffe/build4090/install")
-
-#/home/leo/imvt/imvt.caffe/build/src/caffe/proto/caffe.pb.h
 
 include_directories("${ROOT_DIR}/.")
 include_directories("${CAFFE_DIR}/include")
-include_directories("${CAFFE_DIR}/build/src")	    #"caffe/proto/caffe.pb.h"
-include_directories("${CAFFE_DIR}/build/include")	#"caffe/proto/caffe.pb.h"
 include_directories("${CAFFE_INSTALL}/include") 	#"caffe/proto/caffe.pb.h"
 
-#include_directories("/usr/local/include")	#opencv
-
 include_directories("/usr/local/cuda-12.2/targets/x86_64-linux/include/")
-
-# include(cmake/FindOpenBLAS.cmake)
-# include(cmake/FindAtlas.cmake)
-# include(cmake/ProtoBuf.cmake)
 
 # OPENCV
 if(WIN32)
@@ -47,7 +37,6 @@ else()
 
     #set(OpenCV_DIR "${ROOT_DIR}/3rd/opencv.install/share/OpenCV/")
 	set(OpenCV_DIR "/usr/local/share/OpenCV/")
-
     set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")   #u20.04
 endif()
 
@@ -57,11 +46,9 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
 
 # If you only built the library
-#list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi/.build_release")
 list (APPEND CMAKE_PREFIX_PATH "${CAFFE_INSTALL}")
-
-# If you installed the library there
-#list (APPEND CMAKE_PREFIX_PATH "/home/leo/hand/ai/caffe_hisi")
+list (APPEND CMAKE_PREFIX_PATH "${CAFFE_INSTALL}/lib")
+set(Caffe_DIR "${CAFFE_INSTALL}/share/Caffe")
 find_package(Caffe REQUIRED)
 
 # u22.04:
@@ -71,14 +58,19 @@ find_package(Caffe REQUIRED)
 # u20.04:
 list (APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/Boost-1.71.0")
 find_package(Boost REQUIRED system thread filesystem python)
-
 #find_package(Boost REQUIRED)
-
 
 add_definitions(-DCONFIG_SPDLOG)
 
-add_definitions(-DCPU_ONLY)
-
+#cmake ../yolo
+#cmake ../yolo -DUSE_CUDA=yes
+#cmake ../yolo -DUSE_CUDA=no
+if (USE_CUDA)
+    message(STATUS "USE_CUDA")
+else()
+    message(STATUS "USE_CPU")
+    add_definitions(-DCPU_ONLY)
+endif()
 
 file(GLOB SRC "${ROOT_DIR}/*.cpp"
 			  "${ROOT_DIR}/base/*.cpp"
