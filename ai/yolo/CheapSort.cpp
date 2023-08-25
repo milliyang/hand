@@ -26,9 +26,9 @@ void CheapSort::KalmanGlobalResetId(void)
 
 void CheapSort::CheckKalmanIdRollback(int id)
 {
-    if ((id + 1)  == KalmanTracker::kf_count) {
-        KalmanTracker::kf_count--;
-    }
+    // if ((id + 1)  == KalmanTracker::kf_count) {
+    //     KalmanTracker::kf_count--;
+    // }
 }
 
 CheapSort::CheapSort()
@@ -128,7 +128,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     //bugfix: Leo
     if (trkNum <= 0) {
-        LOGW("[warning] Leo hotfix\n\n\n");
+        //LOGW("[warning] Leo hotfix\n\n\n");
         Init(t_boxes);
         return tracking_result_;
     }

@@ -25,7 +25,6 @@ public:
         m_hit_streak = 0;
         m_age = 0;
         m_id = kf_count;
-        //kf_count++;
     }
     KalmanTracker(StateType initRect, int class_idx, string class_name, float confidence)
     {
