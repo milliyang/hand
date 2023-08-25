@@ -54,7 +54,7 @@ void drawFooTracker(FooTracker &fooTracker, cv::Mat &frame)
     if (infos.begin() == infos.end()) {
         std::stringstream info;
         info << "FooTracking NG";
-        putText(frame, info.str(), cv::Point(5, 100), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 2, 8);
+        putText(frame, info.str(), cv::Point(5, 100), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1, 8);
     } else {
         string label;
         for (auto it = infos.begin(); it != infos.end(); it++) {
@@ -68,7 +68,7 @@ void drawFooTracker(FooTracker &fooTracker, cv::Mat &frame)
             pos.y = (*it).rect.y < 12 ? 12 : (*it).rect.y;
             std::stringstream ss;
             ss << "Foo:" << (*it).id;
-            putText(frame, ss.str(), pos, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 2, 8);
+            putText(frame, ss.str(), pos, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
         }
     }
 }
@@ -105,7 +105,7 @@ void simple_draw_yolo_result(cv::Mat frame, int seq, std::vector<YoloBox> &yolo_
         ss << "(" << -1 << ") " << ybox.class_name << " P|" << ybox.confidence;
 
         cv::rectangle(frame, box, cv::Scalar(255, 0, 0));
-        putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 2, 8);
+        putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
     }
 }
 
@@ -143,7 +143,7 @@ void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat frame, int seq
         stringstream ss;
         ss.precision(2);
         ss << "(" << result.id << ") " << result.class_name << " P|" << result.confidence; //result.class_name;
-        putText(frame, ss.str(), textOrg, cv::FONT_HERSHEY_SIMPLEX, 0.3, cv::Scalar(0, 250, 0), 2, 8);
+        putText(frame, ss.str(), textOrg, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
     }
 }
 
@@ -176,8 +176,8 @@ int main(int argc, char **argv)
 
     if (argc <= 3) {
         std::cerr << "Usage: "
-                << argv[0] << " deploy.prototxt network.caffemodel xxx.mov" << std::endl
-                << argv[0] << " deploy.prototxt network.caffemodel /dev/video0" << std::endl;
+                  << argv[0] << " deploy.prototxt network.caffemodel xxx.mov" << std::endl
+                  << argv[0] << " deploy.prototxt network.caffemodel /dev/video0" << std::endl;
         return 1;
     }
 
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
             ss.setf(std::ios::fixed);
             ss.precision(2);
             ss << "FPS: " << fps;
-            putText(frame, ss.str(), cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.3, cv::Scalar(0, 255, 0), 2, 8);
+            putText(frame, ss.str(), cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1, 8);
         }
 
         // Display the resulting frame

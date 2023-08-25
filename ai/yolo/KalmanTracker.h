@@ -13,7 +13,6 @@ using namespace cv;
 
 #define StateType Rect_<float>
 
-
 // This class represents the internel state of individual tracked objects observed as bounding box.
 class KalmanTracker
 {

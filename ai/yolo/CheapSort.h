@@ -6,6 +6,7 @@
 #include <iomanip> // to format image names using setw() and setfill()
 //#include <io.h>    // to check file existence using POSIX function access(). On Linux include <unistd.h>.
 #include <unistd.h>
+#include <stdint.h>
 #include <set>
 
 #include "Hungarian.h"
@@ -14,7 +15,7 @@
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#define CNUM 20
+#define TRK_NUM 20
 
 typedef struct TrackingBox {
     int frame;
@@ -32,25 +33,22 @@ public:
     CheapSort();
     ~CheapSort();
 
-    vector<TrackingBox> Run(vector<TrackingBox> t_boxes);
+    std::vector<TrackingBox> Run(std::vector<TrackingBox> t_boxes);
     void Clear();
 
-    static void KalmanGlobalReset(void);
+    static void KalmanGlobalResetId(void);
 
 private:
-    // 3. update across frames
-    int frame_count;
-    int max_age;
-    int min_hits;
-    double iouThreshold;
-    vector<KalmanTracker> trackers;
+    void Init(std::vector<TrackingBox> t_boxes);
 
-    void Init(vector<TrackingBox> t_boxes);
+    // update across frames
+    int frame_count_;
+    int max_age_;
+    int min_hits_;
+    float iou_threshold_;
+    std::vector<KalmanTracker> trackers_;
 
     // global variables for counting
-    int total_frames;
-    double total_time;
-
-    vector<TrackingBox> tracking_result;
+    float total_time_;
+    std::vector<TrackingBox> tracking_result_;
 };
-

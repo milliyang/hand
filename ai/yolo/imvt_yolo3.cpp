@@ -23,7 +23,7 @@
 #define OLD_CODE_DYNAMIC_ALLOC_MEMPRY (1)
 
 enum ACTIVATION {
-	LOGISTIC, RELU, RELIE, LINEAR, RAMP, TANH, PLSE, LEAKY, ELU, LOGGY, STAIR, HARDTAN, LHTAN
+    LOGISTIC, RELU, RELIE, LINEAR, RAMP, TANH, PLSE, LEAKY, ELU, LOGGY, STAIR, HARDTAN, LHTAN
 };
 
 struct bbox_t {
@@ -87,125 +87,163 @@ static int entry_index(struct region_layer *layer, int batch, int location, int 
 #if 0
 box get_region_box(float *x, float *biases, int n, int index, int i, int j, int w, int h, int stride)
 {
-	box b;
-	b.x = (i + x[index + 0 * stride]) / w;
-	b.y = (j + x[index + 1 * stride]) / h;
-	b.w = exp(x[index + 2 * stride]) * biases[2 * n] / w;
-	b.h = exp(x[index + 3 * stride]) * biases[2 * n + 1] / h;
-	return b;
+    box b;
+    b.x = (i + x[index + 0 * stride]) / w;
+    b.y = (j + x[index + 1 * stride]) / h;
+    b.w = exp(x[index + 2 * stride]) * biases[2 * n] / w;
+    b.h = exp(x[index + 3 * stride]) * biases[2 * n + 1] / h;
+    return b;
 }
 #else
 //https://github.com/duangenquan/YoloV2NCS/blob/master/src/Region.cpp
 
-static inline float linear_activate(float x) { return x; }
-static inline float logistic_activate(float x) { return 1. / (1. + exp(-x)); }
-static inline float loggy_activate(float x) { return 2. / (1. + exp(-x)) - 1; }
-static inline float relu_activate(float x) { return x*(x > 0); }
-static inline float elu_activate(float x) { return (x >= 0)*x + (x < 0)*(exp(x) - 1); }
-static inline float relie_activate(float x) { return (x > 0) ? x : .01*x; }
-static inline float ramp_activate(float x) { return x*(x > 0) + .1*x; }
-static inline float leaky_activate(float x) { return (x > 0) ? x : .1*x; }
-static inline float tanh_activate(float x) { return (exp(2 * x) - 1) / (exp(2 * x) + 1); }
+static inline float linear_activate(float x)
+{
+    return x;
+}
+static inline float logistic_activate(float x)
+{
+    return 1. / (1. + exp(-x));
+}
+static inline float loggy_activate(float x)
+{
+    return 2. / (1. + exp(-x)) - 1;
+}
+static inline float relu_activate(float x)
+{
+    return x*(x > 0);
+}
+static inline float elu_activate(float x)
+{
+    return (x >= 0)*x + (x < 0)*(exp(x) - 1);
+}
+static inline float relie_activate(float x)
+{
+    return (x > 0) ? x : .01*x;
+}
+static inline float ramp_activate(float x)
+{
+    return x*(x > 0) + .1*x;
+}
+static inline float leaky_activate(float x)
+{
+    return (x > 0) ? x : .1*x;
+}
+static inline float tanh_activate(float x)
+{
+    return (exp(2 * x) - 1) / (exp(2 * x) + 1);
+}
 static inline float plse_activate(float x)
 {
-	if (x < -4) {
-		return .01 * (x + 4);
-	}
-	if (x > 4) {
-		return .01 * (x - 4) + 1;
-	}
-	return .125*x + .5;
+    if (x < -4) {
+        return .01 * (x + 4);
+    }
+    if (x > 4) {
+        return .01 * (x - 4) + 1;
+    }
+    return .125*x + .5;
 }
 static inline float lhtan_activate(float x)
 {
-	if (x < 0) return .001*x;
-	if (x > 1) return .001*(x - 1) + 1;
-	return x;
+    if (x < 0) {
+        return .001*x;
+    }
+    if (x > 1) {
+        return .001*(x - 1) + 1;
+    }
+    return x;
 }
 static inline float stair_activate(float x)
 {
-	int n = floor(x);
-	if (n % 2 == 0) return floor(x / 2.);
-	else return (x - n) + floor(x / 2.);
+    int n = floor(x);
+    if (n % 2 == 0) {
+        return floor(x / 2.);
+    } else {
+        return (x - n) + floor(x / 2.);
+    }
 }
 static inline float hardtan_activate(float x)
 {
-	if (x < -1) return -1;
-	if (x > 1) return 1;
-	return x;
+    if (x < -1) {
+        return -1;
+    }
+    if (x > 1) {
+        return 1;
+    }
+    return x;
 }
 
 #define ACTIVATE_FUNC(x)  logistic_activate(x)
 
 static box get_region_box(float *x, float *biases, int n, int index, int i, int j, int w, int h, int stride)
 {
-	box b;
-	b.x = ((float)i + ACTIVATE_FUNC(x[index + 0 * stride])) / (float)w;
-	b.y = ((float)j + ACTIVATE_FUNC(x[index + 1 * stride])) / (float)h;
-	b.w = exp(x[index + 2 * stride]) * biases[2 * n] / (float)w;
-	b.h = exp(x[index + 3 * stride]) * biases[2 * n + 1] / (float)h;
-	return b;
+    box b;
+    b.x = ((float)i + ACTIVATE_FUNC(x[index + 0 * stride])) / (float)w;
+    b.y = ((float)j + ACTIVATE_FUNC(x[index + 1 * stride])) / (float)h;
+    b.w = exp(x[index + 2 * stride]) * biases[2 * n] / (float)w;
+    b.h = exp(x[index + 3 * stride]) * biases[2 * n + 1] / (float)h;
+    return b;
 }
 #endif
 
 #if 1
 static float activate(float x, ACTIVATION a)
 {
-	switch (a) {
-	case LINEAR:
-		return linear_activate(x);
-	case LOGISTIC:
-		return logistic_activate(x);
-	case LOGGY:
-		return loggy_activate(x);
-	case RELU:
-		return relu_activate(x);
-	case ELU:
-		return elu_activate(x);
-	case RELIE:
-		return relie_activate(x);
-	case RAMP:
-		return ramp_activate(x);
-	case LEAKY:
-		return leaky_activate(x);
-	case TANH:
-		return tanh_activate(x);
-	case PLSE:
-		return plse_activate(x);
-	case STAIR:
-		return stair_activate(x);
-	case HARDTAN:
-		return hardtan_activate(x);
-	case LHTAN:
-		return lhtan_activate(x);
-	}
-	return 0;
+    switch (a) {
+    case LINEAR:
+        return linear_activate(x);
+    case LOGISTIC:
+        return logistic_activate(x);
+    case LOGGY:
+        return loggy_activate(x);
+    case RELU:
+        return relu_activate(x);
+    case ELU:
+        return elu_activate(x);
+    case RELIE:
+        return relie_activate(x);
+    case RAMP:
+        return ramp_activate(x);
+    case LEAKY:
+        return leaky_activate(x);
+    case TANH:
+        return tanh_activate(x);
+    case PLSE:
+        return plse_activate(x);
+    case STAIR:
+        return stair_activate(x);
+    case HARDTAN:
+        return hardtan_activate(x);
+    case LHTAN:
+        return lhtan_activate(x);
+    }
+    return 0;
 }
 #endif
 
 static void activate_array(float *x, const int n, ACTIVATION a)
 {
-	int i;
-	for (i = 0; i < n; ++i) {
-		x[i] = activate(x[i], a);
-	}
+    int i;
+    for (i = 0; i < n; ++i) {
+        x[i] = activate(x[i], a);
+    }
 }
 
 static void forward_yolo_layer_for_activation(struct region_layer *layer)
 {
-	int i, j, b, t, n;
+    int i, j, b, t, n;
     b = 0;
-	//for (b = 0; b < layer->batch; ++b) {
-		for (n = 0; n < layer->n; ++n) {
-			int index = entry_index(layer, b, n*layer->w*layer->h, 0);
-			activate_array(layer->output + index, 2 * layer->w*layer->h, LOGISTIC);
-            //printf("activate_array index:%d num:%d activation:%d\n", index, 2 * layer->w*layer->h, LOGISTIC);
+    //for (b = 0; b < layer->batch; ++b) {
+    for (n = 0; n < layer->n; ++n) {
+        int index = entry_index(layer, b, n*layer->w*layer->h, 0);
+        activate_array(layer->output + index, 2 * layer->w*layer->h, LOGISTIC);
+        //printf("activate_array index:%d num:%d activation:%d\n", index, 2 * layer->w*layer->h, LOGISTIC);
 
-			index = entry_index(layer, b, n*layer->w*layer->h, 4);
-			activate_array(layer->output + index, (1 + layer->classes)*layer->w*layer->h, LOGISTIC);
-            //printf("activate_array index:%d num:%d activation:%d\n", index, (1 + layer->classes)*layer->w*layer->h, LOGISTIC);
-		}
-	//}
+        index = entry_index(layer, b, n*layer->w*layer->h, 4);
+        activate_array(layer->output + index, (1 + layer->classes)*layer->w*layer->h, LOGISTIC);
+        //printf("activate_array index:%d num:%d activation:%d\n", index, (1 + layer->classes)*layer->w*layer->h, LOGISTIC);
+    }
+    //}
 
     // printf("layer>>\n");
     // printf(" ->type:%d\n", layer->type);
@@ -230,10 +268,10 @@ static int yolo_num_detections(struct region_layer *layer, float thresh)
 {
     int i, n;
     int count = 0;
-    for (i = 0; i < layer->w*layer->h; ++i){
-        for(n = 0; n < layer->n; ++n){
+    for (i = 0; i < layer->w*layer->h; ++i) {
+        for(n = 0; n < layer->n; ++n) {
             int obj_index  = entry_index2(layer, 0, n*layer->w*layer->h + i, 4);
-            if(layer->output[obj_index] > thresh){
+            if(layer->output[obj_index] > thresh) {
                 ++count;
             }
         }
@@ -249,21 +287,21 @@ static int num_detections(struct region_layer *layer, float thresh)
     s += yolo_num_detections(layer, thresh);
     printf("yolo_num_detections num:%d thresh:%f\n", s, thresh);
 #else
-	if (layer->type == LAYER_YOLO) {
-		for (i = 0; i < layer->sub_layer_num; i++) {
-			layer->w = layer->sub_layer[i].w;
-			layer->h = layer->sub_layer[i].h;
-			layer->mask[0] = layer->sub_layer[i].mask[0];
-			layer->mask[1] = layer->sub_layer[i].mask[1];
-			layer->mask[2] = layer->sub_layer[i].mask[2];
-			layer->output = layer->sub_layer[i].output;
-			s += yolo_num_detections(layer, thresh);
-			//printf("yolo_num_detections num:%d thresh:%f\n", s, thresh);
-		}
-	} else {
-		s += layer->w*layer->h*layer->n;
+    if (layer->type == LAYER_YOLO) {
+        for (i = 0; i < layer->sub_layer_num; i++) {
+            layer->w = layer->sub_layer[i].w;
+            layer->h = layer->sub_layer[i].h;
+            layer->mask[0] = layer->sub_layer[i].mask[0];
+            layer->mask[1] = layer->sub_layer[i].mask[1];
+            layer->mask[2] = layer->sub_layer[i].mask[2];
+            layer->output = layer->sub_layer[i].output;
+            s += yolo_num_detections(layer, thresh);
+            //printf("yolo_num_detections num:%d thresh:%f\n", s, thresh);
+        }
+    } else {
+        s += layer->w*layer->h*layer->n;
         //printf("yolo_num_detections num:%d thresh:%f\n", s, thresh);
-	}
+    }
 #endif
 
 #if 0
@@ -504,13 +542,13 @@ static void correct_yolo_boxes_v3(detection *dets, int n, int w, int h, int netw
         new_h = neth;
         new_w = (w * neth)/h;
     }
-    for (i = 0; i < n; ++i){
+    for (i = 0; i < n; ++i) {
         box b = dets[i].bbox;
-        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw); 
-        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth); 
+        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw);
+        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth);
         b.w *= (float)netw/new_w;
         b.h *= (float)neth/new_h;
-        if(!relative){
+        if(!relative) {
             b.x *= w;
             b.w *= w;
             b.y *= h;
@@ -525,15 +563,15 @@ static void correct_yolo_boxes(detection *dets, int n, int w, int h, int netw, i
     int i;
     int new_w=0;
     int new_h=0;
-	new_w = netw;
-	new_h = neth;
-    for (i = 0; i < n; ++i){
+    new_w = netw;
+    new_h = neth;
+    for (i = 0; i < n; ++i) {
         box b = dets[i].bbox;
-        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw); 
-        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth); 
+        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw);
+        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth);
         b.w *= (float)netw/new_w;
         b.h *= (float)neth/new_h;
-        if(!relative){
+        if(!relative) {
             b.x *= w;
             b.w *= w;
             b.y *= h;
@@ -547,37 +585,39 @@ static int get_yolo_detections(struct region_layer *layer, int w, int h, int net
 {
     int i,j,n;
     float *predictions = layer->output;
-	int *input;
+    int *input;
     //if (layer->batch == 2) avg_flipped_yolo(layer);
 #if 0
-	if (s_yolo_ctx.quant_base == IMVT_YOLO_QUANT_BASE_HISI) {
-		input = (int *)predictions;
-		for (int i = 0; i < layer->outputs; i++) {
-			predictions[i] = (float)(input[i]) / IMVT_YOLO_QUANT_BASE_HISI;
-		}
-	}
+    if (s_yolo_ctx.quant_base == IMVT_YOLO_QUANT_BASE_HISI) {
+        input = (int *)predictions;
+        for (int i = 0; i < layer->outputs; i++) {
+            predictions[i] = (float)(input[i]) / IMVT_YOLO_QUANT_BASE_HISI;
+        }
+    }
 #endif
     int count = 0;
-    for (i = 0; i < layer->w*layer->h; ++i){
+    for (i = 0; i < layer->w*layer->h; ++i) {
         int row = i / layer->w;
         int col = i % layer->w;
-        for(n = 0; n < layer->n; ++n){
+        for(n = 0; n < layer->n; ++n) {
             int obj_index  = entry_index(layer, 0, n*layer->w*layer->h + i, 4);
             float objectness = predictions[obj_index];
-            if(objectness <= thresh) continue;
+            if(objectness <= thresh) {
+                continue;
+            }
             int box_index  = entry_index(layer, 0, n*layer->w*layer->h + i, 0);
             dets[count].bbox = get_yolo_box(predictions, layer->biases, layer->mask[n], box_index, col, row, layer->w, layer->h, netw, neth, layer->w*layer->h);
 
 #if 0
             printf("get_yolo obj_index:%d count:%d box_index:%d box:%f %f %f %f n:%d mask:%d caffe\n",
-                 obj_index, count, box_index,
-                 dets[count].bbox.x, dets[count].bbox.y, dets[count].bbox.w, dets[count].bbox.h,
-                 n,
-                 layer->mask[n]);
+                   obj_index, count, box_index,
+                   dets[count].bbox.x, dets[count].bbox.y, dets[count].bbox.w, dets[count].bbox.h,
+                   n,
+                   layer->mask[n]);
 #endif
             dets[count].objectness = objectness;
             dets[count].classes = layer->classes;
-            for(j = 0; j < layer->classes; ++j){
+            for(j = 0; j < layer->classes; ++j) {
                 int class_index = entry_index(layer, 0, n*layer->w*layer->h + i, 4 + 1 + j);
                 float prob = objectness*predictions[class_index];
                 dets[count].prob[j] = (prob > thresh) ? prob : 0;
@@ -637,13 +677,13 @@ static void fill_network_boxes(struct region_layer *layer, int w, int h, float t
 
 detection *imvt_yolo3_get_detection(struct region_layer *layer, int w, int h, float thresh, float hier, int *map, int relative, int *num)
 {
-	int *input;
+    int *input;
     if (layer->type == LAYER_YOLO) {
-		if (layer->sub_layer_continue_memory) {
-			layer->sub_layer[0].output = layer->output;
-			layer->sub_layer[1].output = layer->output + layer->sub_layer[0].outputs;
-			layer->sub_layer[2].output = layer->output + layer->sub_layer[0].outputs + layer->sub_layer[1].outputs;
-		}
+        if (layer->sub_layer_continue_memory) {
+            layer->sub_layer[0].output = layer->output;
+            layer->sub_layer[1].output = layer->output + layer->sub_layer[0].outputs;
+            layer->sub_layer[2].output = layer->output + layer->sub_layer[0].outputs + layer->sub_layer[1].outputs;
+        }
         for (int i = 0; i < layer->sub_layer_num; i++) {
             layer->w = layer->sub_layer[i].w;
             layer->h = layer->sub_layer[i].h;
@@ -651,24 +691,24 @@ detection *imvt_yolo3_get_detection(struct region_layer *layer, int w, int h, fl
             layer->mask[1] = layer->sub_layer[i].mask[1];
             layer->mask[2] = layer->sub_layer[i].mask[2];
             layer->output = layer->sub_layer[i].output;
-			layer->outputs = layer->sub_layer[i].outputs;
+            layer->outputs = layer->sub_layer[i].outputs;
 
-			if (s_yolo_ctx.quant_base == IMVT_YOLO_QUANT_BASE_HISI) {
-				input = (int *)layer->output;
-				for (int i = 0; i < layer->outputs; i++) {
-					layer->output[i] = (float)(input[i]) / IMVT_YOLO_QUANT_BASE_HISI;
-				}
-			}
+            if (s_yolo_ctx.quant_base == IMVT_YOLO_QUANT_BASE_HISI) {
+                input = (int *)layer->output;
+                for (int i = 0; i < layer->outputs; i++) {
+                    layer->output[i] = (float)(input[i]) / IMVT_YOLO_QUANT_BASE_HISI;
+                }
+            }
             forward_yolo_layer_for_activation(layer);
         }
-	}
+    }
     detection *dets = make_network_boxes(layer, thresh, num);
 
     fill_network_boxes(layer, w, h, thresh, hier, map, relative, dets);
     // int j;
     // for (j = 0; j < *num; j++) {
-        // box b = dets[j].bbox;
-        // printf("all box[%d]:%f %f %f %f caffe\n", j, b.x, b.y, b.w, b.h);
+    // box b = dets[j].bbox;
+    // printf("all box[%d]:%f %f %f %f caffe\n", j, b.x, b.y, b.w, b.h);
     // }
     return dets;
 }
@@ -750,12 +790,12 @@ int imvt_yolo3_init(struct region_layer *layer, void* mem_buffer, int size, int 
     }
 
 #if OLD_CODE_DYNAMIC_ALLOC_MEMPRY
-	s_yolo_ctx.copy_net_output = 0;
-	s_yolo_ctx.p_buffer = NULL;
-	s_yolo_ctx.buffer_size = 0;
+    s_yolo_ctx.copy_net_output = 0;
+    s_yolo_ctx.p_buffer = NULL;
+    s_yolo_ctx.buffer_size = 0;
 
-	s_yolo_ctx.p_output = NULL;
-	s_yolo_ctx.p_detection = 0;
+    s_yolo_ctx.p_output = NULL;
+    s_yolo_ctx.p_detection = 0;
 #else
     needed = _yolo2_get_memory_needed(layer, &s_yolo_ctx.net_output_len, &s_yolo_ctx.detection_len);
 
