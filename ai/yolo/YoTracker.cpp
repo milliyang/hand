@@ -111,7 +111,6 @@ void simple_draw_yolo_result(cv::Mat frame, int seq, std::vector<YoloBox> &yolo_
 
 void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat frame, int seq, std::vector<YoloBox> &yolo_boxs)
 {
-    // format to CheapSort box
     std::vector<TrackingBox> track_boxes;
     TrackingBox t_box;
     for (auto ybox : yolo_boxs) {
@@ -128,22 +127,18 @@ void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat frame, int seq
         track_boxes.push_back(t_box);
     }
     std::vector<TrackingBox> track_result = sort.Run(track_boxes);
-    cv::Point textOrg;
+    cv::Point pt_text;
     string label;
 
     for (auto result : track_result) {
-        //std::cout << "Track:" << result.class_name << " idx:" << result.class_idx << " confidence:" << result.confidence << " " << result.box.x << " " << result.box.y << " id:" << result.id << std::endl;
-        //rectangle(Mat& img, Rect rec, const Scalar& color, int thickness=1, int lineType=8, int shift=0 )
-        //cv::Rect rect(result.xbox);
-        cv::rectangle(frame, result.box, cv::Scalar(255, 0, 0));
-
-        // then put the text itself
-        textOrg.x = result.box.x;
-        textOrg.y = result.box.y > 2 ? result.box.y - 5 : 0;
+        pt_text.x = result.box.x;
+        pt_text.y = result.box.y > 2 ? result.box.y - 5 : 0;
         stringstream ss;
         ss.precision(2);
-        ss << "(" << result.id << ") " << result.class_name << " P|" << result.confidence; //result.class_name;
-        putText(frame, ss.str(), textOrg, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
+        ss << "(" << result.id << ") " << result.class_name << " P|" << result.confidence;
+
+        putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
+        cv::rectangle(frame, result.box, cv::Scalar(255, 0, 0));
     }
 }
 
@@ -157,11 +152,11 @@ void drawCvTrackingResult(bool ok, cv::Mat frame, cv::Rect2d cv_box)
     }
 }
 
-std::vector<YoloBox> selected_person_face_class_only(std::vector<YoloBox> &yolo_boxs)
+std::vector<YoloBox> selected_person_face_hand_class(std::vector<YoloBox> &yolo_boxs)
 {
     std::vector<YoloBox> selected;
     for (int i = 0; i < yolo_boxs.size(); i++) {
-        if (yolo_boxs[i].class_idx <= 2 && yolo_boxs[i].confidence >= 0.3f) {
+        if (yolo_boxs[i].class_idx <= 2 && yolo_boxs[i].confidence >= 0.15f) {
             selected.push_back(yolo_boxs[i]);
         }
     }
@@ -193,43 +188,33 @@ int main(int argc, char **argv)
     CheapSort cheap_sort;
     imvt_cv_tracking_init();
 
-    ProxyReader frameReader;
+    ProxyReader reader;
 
-    if (!frameReader.open(mov_file)) {
+    if (!reader.open(mov_file)) {
         return 0;
     }
     std::vector<YoloBox> yolo_boxs;
 
     int frame_seq = 0;
     while (1) {
-
         cv::Mat frame;
         cv::Rect2d cv_box;
 
-        frameReader.read(frame);
+        reader.read(frame);
 
         // If the frame is empty, break immediately
         if (frame.empty()) {
             break;
         }
 
-#if 0
-        if (frame_seq % 1 != 0 || frame_seq < 1) {
-            frame_seq++;
-            continue;
-        }
-#endif
-
-        //cv::resize(frame, frame, cv::Size(848, 480));
         cv::resize(frame, frame, cv::Size(416, 416));
 
-        if (!frameReader.isStream() || detect) {
+        if (!reader.isStream() || detect) {
             // Start timer
             double timer = (double)cv::getTickCount();
             //int ok = imvt_cv_tracking_detect(frame, cv_box);
-            //std::vector<YoloBox> yolo_boxs;
             std::vector<YoloBox> yolo_boxs = yolo.Run(frame);
-            std::vector<YoloBox> selected = selected_person_face_class_only(yolo_boxs);
+            std::vector<YoloBox> selected = selected_person_face_hand_class(yolo_boxs);
 
 #if 0
             runFooTracker(fooTracker, frame, selected);
@@ -256,7 +241,7 @@ int main(int argc, char **argv)
 
         // Press  ESC on keyboard to exit
         char c;
-        if (frameReader.isStream()) {
+        if (reader.isStream()) {
             c = (char)cv::waitKey(25);
         } else {
             c = (char)cv::waitKey(25 * 10000);
@@ -278,7 +263,7 @@ int main(int argc, char **argv)
         frame_seq++;
     }
 
-    frameReader.close();
+    reader.close();
 
     // Closes all the frames
     cv::destroyAllWindows();

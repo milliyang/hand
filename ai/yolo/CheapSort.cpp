@@ -20,7 +20,15 @@ float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
 
 void CheapSort::KalmanGlobalResetId(void)
 {
+    //LOGW("reset object id\n");
     KalmanTracker::kf_count = 1; // tracking id relies on this, so we have to reset it in each seq.
+}
+
+void CheapSort::CheckKalmanIdRollback(int id)
+{
+    if ((id + 1)  == KalmanTracker::kf_count) {
+        KalmanTracker::kf_count--;
+    }
 }
 
 CheapSort::CheapSort()
@@ -87,9 +95,17 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     int64 start_time = 0;
 
     if (trackers_.size() == 0) {
+        if (t_boxes.size() == 0) {
+            reset_id_count_++;
+            if (reset_id_count_ >= TRK_RESET_ID_FRAME_NUM) {
+                KalmanGlobalResetId();
+                reset_id_count_ = 0;
+            }
+        }
         Init(t_boxes);
         return tracking_result_;
     }
+    reset_id_count_ = 0;
 
     // 3.1. get predicted locations from existing trackers_.
     predictedBoxes.clear();
@@ -101,7 +117,8 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
             it++;
         } else {
             it = trackers_.erase(it);
-            LOGD("outside id:%d cls:%d %s", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
+            LOGD("outside id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
+            CheckKalmanIdRollback((*it).m_id);
         }
     }
 
@@ -111,7 +128,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     //bugfix: Leo
     if (trkNum <= 0) {
-        LOGW("[warning] Leo hotfix\n\n");
+        LOGW("[warning] Leo hotfix\n\n\n");
         Init(t_boxes);
         return tracking_result_;
     }
@@ -165,7 +182,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
         //
     }
 
-    //LOGD("filter out matched with low IOU");
+    //LOGD("filter out matched with low IOU\n");
 
     // filter out matched with low IOU
     matchedPairs.clear();
@@ -218,8 +235,9 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     for (auto it = trackers_.begin(); it != trackers_.end();) {
         // remove dead tracklet
         if ((*it).m_time_since_update > max_age_) {
-            LOGD("expire id:%d cls:%d %s", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
+            LOGD("expire id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
             it = trackers_.erase(it);
+            CheckKalmanIdRollback((*it).m_id);
         } else {
             ++it;
         }
@@ -228,7 +246,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
 #if 1
     if (trackers_.size() >= TRK_NUM) {
-        LOGW("[warn] trackers:%d", (int) trackers_.size());
+        LOGW("[warn] trackers:%d\n", (int) trackers_.size());
     }
 #endif
 

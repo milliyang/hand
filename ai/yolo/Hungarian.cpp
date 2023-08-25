@@ -12,6 +12,11 @@
 #include <math.h>
 #include "Hungarian.h"
 
+#ifdef CONFIG_SPDLOG
+#define LOG_TAG "HungAlgo"
+#include "log.h"
+#endif
+
 HungarianAlgorithm::HungarianAlgorithm() {}
 HungarianAlgorithm::~HungarianAlgorithm() {}
 
@@ -22,12 +27,9 @@ float HungarianAlgorithm::Solve(vector<vector<float>>& DistMatrix, vector<int>& 
 {
     unsigned int nRows = DistMatrix.size();
     if (nRows <= 0) {
-        printf("nRows:%d -------------------------------\n", nRows);
+        LOGE("nRows:%d -------------\n", nRows);
     }
     unsigned int nCols = DistMatrix[0].size();
-    if (nCols <= 0) {
-        printf("nCols:%d -------------------------------\n", nCols);
-    }
 
     float *array_distMatrixIn = new float[nRows * nCols];
     int   *array_assignment   = new int[nRows];

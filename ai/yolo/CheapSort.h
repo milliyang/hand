@@ -16,6 +16,7 @@
 #include "opencv2/highgui/highgui.hpp"
 
 #define TRK_NUM 20
+#define TRK_RESET_ID_FRAME_NUM 100
 
 typedef struct TrackingBox {
     int frame;
@@ -40,6 +41,7 @@ public:
 
 private:
     void Init(std::vector<TrackingBox> t_boxes);
+    void CheckKalmanIdRollback(int id);
 
     // update across frames
     int frame_count_;
@@ -51,4 +53,6 @@ private:
     // global variables for counting
     float total_time_;
     std::vector<TrackingBox> tracking_result_;
+
+    int reset_id_count_;
 };
