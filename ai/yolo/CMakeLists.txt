@@ -12,9 +12,12 @@ set(CAFFE_DIR     "/home/leo/imvt/imvt.caffe")
 set(CAFFE_INSTALL "/home/leo/imvt/imvt.caffe/build4090/install")
 
 include_directories("${ROOT_DIR}/.")
+include_directories("${ROOT_DIR}/tracking/sort")
+include_directories("${ROOT_DIR}/tracking/kcf")
+include_directories("${ROOT_DIR}/zmq")
+
 include_directories("${CAFFE_DIR}/include")
 include_directories("${CAFFE_INSTALL}/include") 	#"caffe/proto/caffe.pb.h"
-
 include_directories("/usr/local/cuda-12.2/targets/x86_64-linux/include/")
 
 # OPENCV
@@ -74,6 +77,9 @@ endif()
 
 file(GLOB SRC "${ROOT_DIR}/*.cpp"
 			  "${ROOT_DIR}/base/*.cpp"
+              "${ROOT_DIR}/tracking/sort/*.cpp"
+              "${ROOT_DIR}/tracking/kcf/*.cpp"
+              "${ROOT_DIR}/zmq/*.cpp"
 )
 
 if(LINUX)
