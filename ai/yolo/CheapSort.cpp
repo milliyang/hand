@@ -82,6 +82,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     // variables used in the for-loop
     std::vector<cv::Rect_<float>> predictedBoxes;
+    std::vector<uint8_t>          predictedBoxesClass;
     std::vector<vector<float>> iouMatrix;
     std::vector<int> assignment;
     std::set<int> unmatchedDetections;
@@ -111,11 +112,13 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     // 3.1. get predicted locations from existing trackers_.
     predictedBoxes.clear();
+    predictedBoxesClass.clear();
 
     for (auto it = trackers_.begin(); it != trackers_.end();) {
         cv::Rect_<float> pdBox = (*it).predict();
         if (check_box_valid(pdBox)) {
             predictedBoxes.push_back(pdBox);
+            predictedBoxesClass.push_back((*it).class_idx_);
             it++;
         } else {
             it = trackers_.erase(it);
@@ -139,7 +142,11 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     for (uint32_t i = 0; i < trkNum; i++)  {
         for (uint32_t j = 0; j < detNum; j++) {
             // use 1-iou because the hungarian algorithm computes a minimum-cost assignment.
-            iouMatrix[i][j] = 1 - GetIOU(predictedBoxes[i], t_boxes[j].box);
+            if (predictedBoxesClass[i] == t_boxes[j].class_idx) {
+                iouMatrix[i][j] = 1 - GetIOU(predictedBoxes[i], t_boxes[j].box);
+            } else {
+                iouMatrix[i][j] = 1 - 0; //Leo fix: diff class always 0 iou
+            }
         }
     }
 
