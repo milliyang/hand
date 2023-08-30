@@ -56,5 +56,5 @@ private:
     float total_time_;
     std::vector<TrackingBox> tracking_result_;
 
-    int reset_id_count_;
+    int no_tracker_count_;  //
 };

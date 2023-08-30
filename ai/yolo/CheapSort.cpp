@@ -1,7 +1,7 @@
 #include "CheapSort.h"
 
 #ifdef CONFIG_SPDLOG
-#define LOG_TAG "trker"
+#define LOG_TAG "sort"
 #include "log.h"
 #endif
 
@@ -20,11 +20,9 @@ float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
 {
     float in = (bb_test & bb_gt).area();
     float un = bb_test.area() + bb_gt.area() - in;
-
     if (un < DBL_EPSILON) {
         return 0;
     }
-
     return (float)(in / un);
 }
 
@@ -90,7 +88,6 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     std::set<int> allItems;
     std::set<int> matchedItems;
     std::vector<cv::Point> matchedPairs;
-    std::vector<TrackingBox> frameTrackingResult;
     uint32_t trkNum = 0;
     uint32_t detNum = 0;
 
@@ -99,16 +96,16 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     if (trackers_.size() == 0) {
         if (t_boxes.size() == 0) {
-            reset_id_count_++;
-            if (reset_id_count_ >= TRK_RESET_ID_FRAME_NUM) {
+            no_tracker_count_++;
+            if (no_tracker_count_ >= TRK_RESET_ID_FRAME_NUM) {
                 KalmanGlobalResetId();
-                reset_id_count_ = 0;
+                no_tracker_count_ = 0;
             }
         }
         Init(t_boxes);
         return tracking_result_;
     }
-    reset_id_count_ = 0;
+    no_tracker_count_ = 0;
 
     // 3.1. get predicted locations from existing trackers_.
     predictedBoxes.clear();
@@ -181,11 +178,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
                 unmatchedTrajectories.insert(i);
             }
         }
-    } else {
-        //
     }
-
-    //LOGD("filter out matched with low IOU\n");
 
     // filter out matched with low IOU
     matchedPairs.clear();
@@ -237,7 +230,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
 #if 1
     for (auto it = trackers_.begin(); it != trackers_.end();) {
-        // remove dead tracklet
+        // remove dead tracker
         if ((*it).m_time_since_update > max_age_) {
             LOGD("expire id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
             it = trackers_.erase(it);
@@ -256,9 +249,5 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     cycle_time = (float)(cv::getTickCount() - start_time);
     total_time_ += cycle_time / cv::getTickFrequency();
 
-    // for (auto tb : tracking_result_) {
-    //     std::cout << "id:" << tb.id << "," << tb.class_name
-    //         << tb.box.x << "," << tb.box.y << "," << tb.box.width << "," << tb.box.height << endl;
-    // }
     return tracking_result_;
 }
