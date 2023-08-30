@@ -1,9 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
-// KalmanTracker.h: KalmanTracker Class Declaration
 #pragma once
 
-#ifndef KALMAN_H
-#define KALMAN_H 2
+#ifndef __KALMAN_H__
+#define __KALMAN_H__
 
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -38,7 +36,7 @@ public:
 
         class_idx_ = class_idx;
         class_name_ = class_name;
-        class_confidence_ = confidence;
+        confidence_ = confidence;
     }
 
     ~KalmanTracker()
@@ -48,7 +46,6 @@ public:
 
     StateType predict();
     void update(StateType stateMat);
-    void update_yolo(float confident);
 
     StateType get_state();
     StateType get_rect_xysr(float cx, float cy, float s, float r);
@@ -62,10 +59,9 @@ public:
     int m_id;
 
     //leo for yolo
-    int class_idx_;
-    string class_name_;
-    float class_confidence_;
-    //leo for yolo
+    int          class_idx_;
+    std::string  class_name_;
+    float        confidence_;
 private:
     void init_kf(StateType stateMat);
 

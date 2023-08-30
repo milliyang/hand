@@ -1,7 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////
-// KalmanTracker.cpp: KalmanTracker Class Implementation Declaration
-
 #include "KalmanTracker.h"
+
+#ifdef CONFIG_SPDLOG
+#define LOG_TAG "kalman"
+#include "log.h"
+#endif
 
 int KalmanTracker::kf_count = 1;
 
@@ -10,7 +12,7 @@ void KalmanTracker::init_kf(StateType stateMat)
 {
     int stateNum = 7;
     int measureNum = 4;
-    kf = KalmanFilter(stateNum, measureNum, 0);
+    kf = cv::KalmanFilter(stateNum, measureNum, 0);
 
     measurement = Mat::zeros(measureNum, 1, CV_32F);
 
@@ -38,7 +40,6 @@ void KalmanTracker::init_kf(StateType stateMat)
 // Predict the estimated bounding box.
 StateType KalmanTracker::predict()
 {
-    // predict
     Mat p = kf.predict();
     m_age += 1;
 
@@ -53,7 +54,6 @@ StateType KalmanTracker::predict()
     return m_history.back();
 }
 
-
 // Update the state vector with observed bounding box.
 void KalmanTracker::update(StateType stateMat)
 {
@@ -63,7 +63,7 @@ void KalmanTracker::update(StateType stateMat)
     m_hit_streak += 1;
 
     // measurement
-    measurement.at<float>(0, 0) = stateMat.x + stateMat.width / 2;
+    measurement.at<float>(0, 0) = stateMat.x + stateMat.width  / 2;
     measurement.at<float>(1, 0) = stateMat.y + stateMat.height / 2;
     measurement.at<float>(2, 0) = stateMat.area();
     measurement.at<float>(3, 0) = stateMat.width / stateMat.height;
@@ -72,18 +72,12 @@ void KalmanTracker::update(StateType stateMat)
     kf.correct(measurement);
 }
 
-void KalmanTracker::update_yolo(float confident)
-{
-    class_confidence_ = confident;
-}
-
 // Return the current state vector
 StateType KalmanTracker::get_state()
 {
     Mat s = kf.statePost;
     return get_rect_xysr(s.at<float>(0, 0), s.at<float>(1, 0), s.at<float>(2, 0), s.at<float>(3, 0));
 }
-
 
 // Convert bounding box from [cx,cy,s,r] to [x,y,w,h] style.
 StateType KalmanTracker::get_rect_xysr(float cx, float cy, float s, float r)

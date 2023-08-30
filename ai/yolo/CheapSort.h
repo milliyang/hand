@@ -15,8 +15,11 @@
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#define TRK_NUM 20
-#define TRK_RESET_ID_FRAME_NUM 100
+#define TRK_NUM                 20
+#define TRK_RESET_ID_FRAME_NUM  100
+
+#define TRK_EXPIRE_MAX_AGE          (100)
+#define TRK_IOU_THRESHOLD           (0.3f)
 
 typedef struct TrackingBox {
     int frame;
@@ -41,7 +44,6 @@ public:
 
 private:
     void Init(std::vector<TrackingBox> t_boxes);
-    void CheckKalmanIdRollback(int id);
 
     // update across frames
     int frame_count_;

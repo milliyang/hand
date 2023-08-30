@@ -5,6 +5,16 @@
 #include "log.h"
 #endif
 
+bool check_box_valid(const cv::Rect_<float> &bb)
+{
+    if (bb.x >= 0 && bb.y >= 0) {
+        return true;
+    } else {
+        //bb.x == nan
+        return false;
+    }
+}
+
 // Computes IOU between two bounding boxes
 float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
 {
@@ -20,23 +30,15 @@ float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
 
 void CheapSort::KalmanGlobalResetId(void)
 {
-    //LOGW("reset object id\n");
     KalmanTracker::kf_count = 1; // tracking id relies on this, so we have to reset it in each seq.
-}
-
-void CheapSort::CheckKalmanIdRollback(int id)
-{
-    // if ((id + 1)  == KalmanTracker::kf_count) {
-    //     KalmanTracker::kf_count--;
-    // }
 }
 
 CheapSort::CheapSort()
 {
     frame_count_    = 0;
-    max_age_        = 15;
+    max_age_        = TRK_EXPIRE_MAX_AGE;
     min_hits_       = 2;
-    iou_threshold_  = 0.15;
+    iou_threshold_  = TRK_IOU_THRESHOLD;
 }
 
 CheapSort::~CheapSort()
@@ -67,7 +69,7 @@ void CheapSort::Init(vector<TrackingBox> t_boxes)
         res.id = (*it).m_id;
         res.frame = frame_count_;
         res.class_name = (*it).class_name_;
-        res.confidence = (*it).class_confidence_;
+        res.confidence = (*it).confidence_;
         res.class_idx = (*it).class_idx_;
         tracking_result_.push_back(res);
         it++;
@@ -79,15 +81,15 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     frame_count_++;
 
     // variables used in the for-loop
-    vector<cv::Rect_<float>> predictedBoxes;
-    vector<vector<float>> iouMatrix;
-    vector<int> assignment;
-    set<int> unmatchedDetections;
-    set<int> unmatchedTrajectories;
-    set<int> allItems;
-    set<int> matchedItems;
-    vector<cv::Point> matchedPairs;
-    vector<TrackingBox> frameTrackingResult;
+    std::vector<cv::Rect_<float>> predictedBoxes;
+    std::vector<vector<float>> iouMatrix;
+    std::vector<int> assignment;
+    std::set<int> unmatchedDetections;
+    std::set<int> unmatchedTrajectories;
+    std::set<int> allItems;
+    std::set<int> matchedItems;
+    std::vector<cv::Point> matchedPairs;
+    std::vector<TrackingBox> frameTrackingResult;
     uint32_t trkNum = 0;
     uint32_t detNum = 0;
 
@@ -111,14 +113,12 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     predictedBoxes.clear();
 
     for (auto it = trackers_.begin(); it != trackers_.end();) {
-        cv::Rect_<float> pBox = (*it).predict();
-        if (pBox.x >= 0 && pBox.y >= 0) {
-            predictedBoxes.push_back(pBox);
+        cv::Rect_<float> pdBox = (*it).predict();
+        if (check_box_valid(pdBox)) {
+            predictedBoxes.push_back(pdBox);
             it++;
         } else {
             it = trackers_.erase(it);
-            LOGD("outside id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
-            CheckKalmanIdRollback((*it).m_id);
         }
     }
 
@@ -128,7 +128,6 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     //bugfix: Leo
     if (trkNum <= 0) {
-        //LOGW("[warning] Leo hotfix\n\n\n");
         Init(t_boxes);
         return tracking_result_;
     }
@@ -161,17 +160,14 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
         for (uint32_t n = 0; n < detNum; n++) {
             allItems.insert(n);
         }
-
         for (uint32_t i = 0; i < trkNum; ++i) {
             matchedItems.insert(assignment[i]);
         }
-
         set_difference(allItems.begin(), allItems.end(),
                        matchedItems.begin(), matchedItems.end(),
                        insert_iterator<set<int>>(unmatchedDetections, unmatchedDetections.begin()));
     } else if (detNum < trkNum) {
         // there are unmatched trajectory/predictions
-
         for (uint32_t i = 0; i < trkNum; ++i) {
             // unassigned label will be set as -1 in the assignment algorithm
             if (assignment[i] == -1) {
@@ -207,6 +203,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
         trkIdx = matchedPairs[i].x;
         detIdx = matchedPairs[i].y;
         trackers_[trkIdx].update(t_boxes[detIdx].box);
+        trackers_[trkIdx].confidence_ = t_boxes[detIdx].confidence;
     }
 
     // create and initialise new trackers for unmatched detections
@@ -225,7 +222,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
             res.id          = trker.m_id;
             res.frame       = frame_count_;
             res.class_name  = trker.class_name_;
-            res.confidence  = trker.class_confidence_;
+            res.confidence  = trker.confidence_;
             res.class_idx   = trker.class_idx_;
             tracking_result_.push_back(res);
         }
@@ -237,7 +234,6 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
         if ((*it).m_time_since_update > max_age_) {
             LOGD("expire id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
             it = trackers_.erase(it);
-            CheckKalmanIdRollback((*it).m_id);
         } else {
             ++it;
         }

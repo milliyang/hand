@@ -165,7 +165,6 @@ void HungarianAlgorithm::assignmentoptimal(int *assignment, float *cost, float *
         for (row = 0; row<nOfRows; row++) {
             coveredRows[row] = false;
         }
-
     }
 
     /* move to step 2b */

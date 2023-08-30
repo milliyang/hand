@@ -79,8 +79,16 @@ void drawYoloResult(cv::Mat &frame, int seq, std::vector<YoloBox> &yolo_boxs)
         std::cout << "not found! frame_seq:" << seq << std::endl;
     } else {
         for (auto ybox : yolo_boxs) {
-            std::cout << "Yolo :" << ybox.class_name << " idx:" << ybox.class_idx << " confidence:" << ybox.confidence << " " << ybox.left << " " << ybox.top << " " << ybox.right << " " << ybox.bottom << " frame_seq:" << seq << std::endl;
+            stringstream ss;
+            ss.precision(2);
+            ss << "("<< ybox.class_idx << ")" << ybox.class_name << " P|" << ybox.confidence;
+            //std::cout << "Yolo :" << ybox.class_name << " idx:" << ybox.class_idx << " confidence:" << ybox.confidence << " " << ybox.left << " " << ybox.top << " " << ybox.right << " " << ybox.bottom << " frame_seq:" << seq << std::endl;
             //rectangle(Mat& img, Rect rec, const Scalar& color, int thickness=1, int lineType=8, int shift=0 )
+            cv::Point pt_text;
+            pt_text.x = ybox.left;
+            pt_text.y = ybox.top-2;
+            putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 250), 1, 8);
+
             cv::Rect rect(ybox.left, ybox.top, (ybox.right - ybox.left), (ybox.bottom - ybox.top));
             cv::rectangle(frame, rect, cv::Scalar(250, 0, 0));
         }
@@ -109,7 +117,7 @@ void simple_draw_yolo_result(cv::Mat frame, int seq, std::vector<YoloBox> &yolo_
     }
 }
 
-void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat frame, int seq, std::vector<YoloBox> &yolo_boxs)
+void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat &frame, int seq, std::vector<YoloBox> &yolo_boxs)
 {
     std::vector<TrackingBox> track_boxes;
     TrackingBox t_box;
@@ -127,6 +135,7 @@ void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat frame, int seq
         track_boxes.push_back(t_box);
     }
     std::vector<TrackingBox> track_result = sort.Run(track_boxes);
+
     cv::Point pt_text;
     string label;
 
@@ -137,8 +146,18 @@ void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat frame, int seq
         ss.precision(2);
         ss << "(" << result.id << ") " << result.class_name << " P|" << result.confidence;
 
-        putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
-        cv::rectangle(frame, result.box, cv::Scalar(255, 0, 0));
+        if (result.class_idx == 0) {
+            pt_text.y = pt_text.y+result.box.height-10;
+            pt_text.y = std::min(pt_text.y, 416);
+            putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 250), 1, 8);
+            cv::rectangle(frame, result.box, cv::Scalar(0, 250, 250));
+        } else if (result.class_idx == 1) {
+            putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
+            cv::rectangle(frame, result.box, cv::Scalar(0, 250, 0));
+        } else {
+            putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(250, 0, 0), 1, 8);
+            cv::rectangle(frame, result.box, cv::Scalar(250, 0, 0));
+        }
     }
 }
 
@@ -212,20 +231,20 @@ int main(int argc, char **argv)
         if (!reader.isStream() || detect) {
             // Start timer
             double timer = (double)cv::getTickCount();
-            //int ok = imvt_cv_tracking_detect(frame, cv_box);
             std::vector<YoloBox> yolo_boxs = yolo.Run(frame);
             std::vector<YoloBox> selected = selected_person_face_hand_class(yolo_boxs);
-
 #if 0
             runFooTracker(fooTracker, frame, selected);
             drawYoloResult(frame, frame_seq, selected);
             drawFooTracker(fooTracker, frame);
 #elif 1
             run_and_raw_with_cheap_sort_tracker(cheap_sort, frame, frame_seq, selected);
+#elif 0
+            int ok = imvt_cv_tracking_detect(frame, cv_box);
+            drawCvTrackingResult(ok, frame, cv_box);
 #else
             simple_draw_yolo_result(frame, frame_seq, selected);
 #endif
-            //drawCvTrackingResult(ok, frame, cv_box);
 
             // Calculate Frames per second (FPS)
             float fps = cv::getTickFrequency() / ((double)cv::getTickCount() - timer);
