@@ -115,7 +115,6 @@ void SimilarObj::generateSsimImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &o
 
     // crop,rescale, sub-mean
     cv::Mat crop = cv::Mat(in, cv::Rect(x, y, w, h));
-    //cv::resize(src, m_mat, cv::Size(regs.width, regs.height), 0,0,cv::INTER_CUBIC);
     cv::resize(crop, out, cv::Size(SSIM_FEATURE_SIZE, SSIM_FEATURE_SIZE), 0, 0, cv::INTER_LINEAR);
 }
 
@@ -162,9 +161,11 @@ void SimilarObj::generateHogImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &ou
     out = Hogfeat;
 }
 
-void SimilarObj::init(cv::Mat &frame, const TrackingBox &tbox)
+void SimilarObj::init(cv::Mat &frame, const TrackingBox &tbox, int id)
 {
-    tbox_ = tbox;
+    sort_id_ = tbox.id;
+    tbox_    = tbox;
+    tbox_.id = id;
 
 #if USE_SSIM
     generateSsimImage(frame, tbox.box, mat_roi_);
@@ -175,13 +176,18 @@ void SimilarObj::init(cv::Mat &frame, const TrackingBox &tbox)
     inited_ = 1;
 }
 
-void SimilarObj::update(cv::Mat &frame, const TrackingBox &tbox)
+void SimilarObj::updateBox(const TrackingBox &tbox)
 {
     assert(tbox_.class_idx == tbox.class_idx);
 
     tbox_.box = tbox.box;
     tbox_.frame = tbox.frame;
     tbox_.confidence = tbox.confidence;
+}
+
+void SimilarObj::update(cv::Mat &frame, const TrackingBox &tbox)
+{
+    updateBox(tbox);
 
 #if USE_SSIM
     generateSsimImage(frame, tbox.box, mat_roi_);

@@ -9,6 +9,9 @@
 #include <set>
 #include <string>
 
+#include "Hungarian.h"
+#include "KalmanTracker.h"
+
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
@@ -25,3 +28,5 @@ typedef struct TrackingBox {
 
 #define SORT_BOX_MIN            (8)
 #define SORT_YOLO_SIZE          (416)
+
+#define SORT_OBJECT_AGE_MAX     (30)

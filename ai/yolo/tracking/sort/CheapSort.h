@@ -10,11 +10,6 @@
 #include <set>
 
 #include "sort_def.h"
-#include "Hungarian.h"
-#include "KalmanTracker.h"
-
-#include "opencv2/video/tracking.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
 #define TRK_NUM                 20
 #define TRK_RESET_ID_FRAME_NUM  100

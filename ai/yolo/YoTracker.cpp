@@ -123,6 +123,8 @@ void run_and_draw_with_sort_tracker(SimilarTracker &trker, CheapSort &sort, cv::
 {
     std::vector<TrackingBox> track_boxes;
     TrackingBox t_box;
+    cv::Mat frame_bk = frame.clone();
+
     for (auto ybox : yolo_boxs) {
         t_box.frame = seq;
         t_box.id = -1;
@@ -140,7 +142,6 @@ void run_and_draw_with_sort_tracker(SimilarTracker &trker, CheapSort &sort, cv::
 
     cv::Point pt_text;
     string label;
-
     for (auto result : track_result) {
         pt_text.x = result.box.x;
         pt_text.y = result.box.y > 2 ? result.box.y - 5 : 0;
@@ -163,6 +164,30 @@ void run_and_draw_with_sort_tracker(SimilarTracker &trker, CheapSort &sort, cv::
     }
 
     //SimilarTracker
+    std::vector<TrackingBox> trk_boxes;
+    trk_boxes = trker.Run(frame_bk, track_result);
+    //trk_boxes = track_result;
+    for (auto result : trk_boxes) {
+        pt_text.x = result.box.x;
+        pt_text.y = result.box.y > 2 ? result.box.y - 5 : 0;
+        stringstream ss;
+        ss.precision(2);
+        ss << "(" << result.id << ") " << result.class_name << " P|" << result.confidence;
+
+        if (result.class_idx == 0) {
+            pt_text.y = pt_text.y+result.box.height-10;
+            pt_text.y = std::min(pt_text.y, 416);
+            putText(frame_bk, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 250), 1, 8);
+            cv::rectangle(frame_bk, result.box, cv::Scalar(0, 250, 250));
+        } else if (result.class_idx == 1) {
+            putText(frame_bk, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
+            cv::rectangle(frame_bk, result.box, cv::Scalar(0, 250, 0));
+        } else {
+            putText(frame_bk, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(250, 0, 0), 1, 8);
+            cv::rectangle(frame_bk, result.box, cv::Scalar(250, 0, 0));
+        }
+    }
+    cv::imshow("SimTracker", frame_bk);
 
 
 }
@@ -193,6 +218,7 @@ int main(int argc, char **argv)
     int ret;
     int detect = 0;
     int source = 0;
+    int show_once = 1;
 
     if (argc <= 3) {
         std::cerr << "Usage: "
@@ -263,7 +289,10 @@ int main(int argc, char **argv)
         }
 
         // Display the resulting frame
-        cv::imshow("YoTracker", frame);
+        cv::imshow("YoTracker",  frame);
+        if (show_once) {
+            cv::imshow("SimTracker", frame);    show_once = 0;
+        }
 
         // Press  ESC on keyboard to exit
         char c;

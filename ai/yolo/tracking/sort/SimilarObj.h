@@ -21,11 +21,14 @@ public:
     SimilarObj();
     ~SimilarObj();
 
-    void  init(cv::Mat &frame, const TrackingBox &tbox);
+    void  init(cv::Mat &frame, const TrackingBox &tbox, int id);
+    void  updateBox(const TrackingBox &tbox);
     void  update(cv::Mat &frame, const TrackingBox &tbox);
     float checkMatchScore(cv::Mat &frame, const RectBox &box);
 
-    TrackingBox get(void);
+public:
+    int sort_id_;
+    TrackingBox tbox_;
 
 private:
     void generateSsimImage(cv::Mat &in, RectBox box, cv::Mat &out);
@@ -33,7 +36,6 @@ private:
 
 private:
     uint8_t     inited_;
-    uint32_t    id_;
-    TrackingBox tbox_;
+    
     cv::Mat     mat_roi_;
 };
