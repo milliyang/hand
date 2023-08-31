@@ -5,12 +5,14 @@
 #include "yolo1.h"
 #include "yolo2.h"
 #include "yolo2ab.h"
-#include "CheapSort.h"
 #include "proxy_reader.h"
 #include "imvt_cv_tracking.h"
 
 #include "foo_tracker.h"
 #include "moving_object.h"
+
+#include "CheapSort.h"
+#include "SimilarTracker.h"
 
 using namespace std;
 
@@ -117,7 +119,7 @@ void simple_draw_yolo_result(cv::Mat frame, int seq, std::vector<YoloBox> &yolo_
     }
 }
 
-void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat &frame, int seq, std::vector<YoloBox> &yolo_boxs)
+void run_and_draw_with_sort_tracker(SimilarTracker &trker, CheapSort &sort, cv::Mat &frame, int seq, std::vector<YoloBox> &yolo_boxs)
 {
     std::vector<TrackingBox> track_boxes;
     TrackingBox t_box;
@@ -159,6 +161,10 @@ void run_and_raw_with_cheap_sort_tracker(CheapSort &sort, cv::Mat &frame, int se
             cv::rectangle(frame, result.box, cv::Scalar(250, 0, 0));
         }
     }
+
+    //SimilarTracker
+
+
 }
 
 void drawCvTrackingResult(bool ok, cv::Mat frame, cv::Rect2d cv_box)
@@ -205,6 +211,7 @@ int main(int argc, char **argv)
     Yolo2 yolo(model_file, trained_file, model_file, model_file);
 
     CheapSort cheap_sort;
+    SimilarTracker sim_tracker;
     imvt_cv_tracking_init();
 
     ProxyReader reader;
@@ -238,7 +245,7 @@ int main(int argc, char **argv)
             drawYoloResult(frame, frame_seq, selected);
             drawFooTracker(fooTracker, frame);
 #elif 1
-            run_and_raw_with_cheap_sort_tracker(cheap_sort, frame, frame_seq, selected);
+            run_and_draw_with_sort_tracker(sim_tracker, cheap_sort, frame, frame_seq, selected);
 #elif 0
             int ok = imvt_cv_tracking_detect(frame, cv_box);
             drawCvTrackingResult(ok, frame, cv_box);

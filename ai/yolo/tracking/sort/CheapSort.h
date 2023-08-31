@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <set>
 
+#include "sort_def.h"
 #include "Hungarian.h"
 #include "KalmanTracker.h"
 
@@ -20,16 +21,6 @@
 
 #define TRK_EXPIRE_MAX_AGE          (100)
 #define TRK_IOU_THRESHOLD           (0.3f)
-
-typedef struct TrackingBox {
-    int frame;
-    int id;
-    cv::Rect_<float> box;
-
-    int class_idx;
-    string class_name;
-    float confidence;
-} TrackingBox;
 
 class CheapSort
 {
