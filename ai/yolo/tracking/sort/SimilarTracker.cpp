@@ -89,6 +89,13 @@ void SimilarTracker::find_safe_boxes(std::set<int> &safe, std::vector<TrackingBo
             if (used[j]) {
                 continue;
             }
+            if (tboxes[i].class_idx != tboxes[j].class_idx) {
+                continue;   //the same class, always safe
+            }
+
+            //TODO:
+            // scale rect = rect*1.2; then GetIOU()
+            //
             float iou = GetIOU(tboxes[i].box, tboxes[j].box);
             if (iou >= 0.001f) {
                 used[i] = used[j] = 1;
@@ -220,7 +227,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
 
     //update object safe
     if (safe_box_set.size() > 0) {
-        LOGD("safe_box_set:%d  obj_num:%d\n", (int) safe_box_set.size(), (int)objects_.size());
+        //LOGD("safe_box_set:%d  obj_num:%d\n", (int) safe_box_set.size(), (int)objects_.size());
         for (auto idx: safe_box_set) {
             auto &tbox = tboxes[idx];
             int uid = -1;
@@ -228,11 +235,11 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
             if (it == obj_id_map_.end()) {
                 continue;
             }
-            LOGD("[updat_roi] id:[%d-%d]\n", tbox.id, uid);
             uid = it->second;
+            //LOGD("[updat_roi] id:[%d-%d] >>\n", tbox.id, uid);
             for (auto &obj: objects_) {
                 if (obj.tbox_.id == uid) {
-                    LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, uid);
+                    //LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, uid);
                     obj.update(frame, tbox);
                     break;
                 }
