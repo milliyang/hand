@@ -15,6 +15,7 @@ include_directories("${ROOT_DIR}/.")
 include_directories("${ROOT_DIR}/tracking/sort")
 include_directories("${ROOT_DIR}/tracking/kcf")
 include_directories("${ROOT_DIR}/zmq")
+include_directories("${ROOT_DIR}/reader")
 
 include_directories("${CAFFE_DIR}/include")
 include_directories("${CAFFE_INSTALL}/include") 	#"caffe/proto/caffe.pb.h"
@@ -80,6 +81,7 @@ file(GLOB SRC "${ROOT_DIR}/*.cpp"
               "${ROOT_DIR}/tracking/sort/*.cpp"
               "${ROOT_DIR}/tracking/kcf/*.cpp"
               "${ROOT_DIR}/zmq/*.cpp"
+              "${ROOT_DIR}/reader/*.cpp"
 )
 
 if(LINUX)
