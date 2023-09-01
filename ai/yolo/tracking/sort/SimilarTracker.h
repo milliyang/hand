@@ -30,6 +30,7 @@ public:
     std::vector<TrackingBox> Run(cv::Mat &frame, std::vector<TrackingBox> &tboxes);
     //TrackingBox Run(std::vector<TrackingBox> tboxes);
     std::vector<TrackingBox> getBoxes(void);
+    std::vector<TrackingBox> getHiddenBoxes(void);
 
 private:
     bool check_and_reinit(cv::Mat &frame, std::vector<TrackingBox> &tboxes);
@@ -43,5 +44,7 @@ private:
     int         cur_max_objects_;
     ObjectIdMap obj_id_map_;       //sort_id -> obj_id_
 
-    std::vector<SimilarObj> objects_;
+    std::vector<TrackingBox>    cur_tboxes_;
+    std::vector<SimilarObj>     objects_;
+    uint8_t                     objects_cls_counter_[SORT_YOLO_CLASS_NUM];
 };

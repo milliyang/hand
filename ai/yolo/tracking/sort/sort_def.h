@@ -26,7 +26,9 @@ typedef struct TrackingBox {
     std::string class_name;
 } TrackingBox;
 
-#define SORT_BOX_MIN            (8)
-#define SORT_YOLO_SIZE          (416)
+#define SORT_BOX_MIN                (8)
+#define SORT_YOLO_SIZE              (416)
+#define SORT_YOLO_CLASS_NUM         (20)
 
-#define SORT_OBJECT_AGE_MAX     (30)
+#define SORT_OBJECT_AGE_MAX             (90)        //3s
+#define SORT_OBJECT_HIDDEN_AGE_MAX      (6)         //5frame
