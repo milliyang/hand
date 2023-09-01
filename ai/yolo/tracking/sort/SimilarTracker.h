@@ -39,6 +39,7 @@ private:
     void check_and_remove_object(void);
 
 private:
+    int         main_trk_id_;
     uint32_t    uuid_;
     int         cur_frame_seq_;
     int         cur_max_objects_;

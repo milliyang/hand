@@ -32,6 +32,7 @@ SimilarTracker::SimilarTracker(void)
 {
     uuid_ = 1;
     cur_max_objects_ = 0;
+    main_trk_id_ = -1;
 
     memset(objects_cls_counter_, 0, sizeof(objects_cls_counter_));
 }
@@ -297,12 +298,13 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
 }
 
 /*start tracking by ID/Rect */
-void trackById(int id)
+void SimilarTracker::trackById(int id)
 {
-
+    LOGD("[start_tracking] id:%d\n", id);
+    main_trk_id_ = id;
 }
 
-void trackByRect(const RectBox &rect)
+void SimilarTracker::trackByRect(const RectBox &rect)
 {
 
 }

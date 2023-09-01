@@ -14,6 +14,11 @@
 #include "CheapSort.h"
 #include "SimilarTracker.h"
 
+#ifdef CONFIG_SPDLOG
+#define LOG_TAG "main"
+#include "log.h"
+#endif
+
 using namespace std;
 
 // ./YoTracker.exe yolo_small_deploy.prototxt yolo_small.caffemodel yolo.mov
@@ -131,7 +136,7 @@ void draw_tracking_boxes_with_style(cv::Mat &frame, const std::vector<TrackingBo
         pt_text.y = tbox.box.y > 2 ? tbox.box.y - 5 : 0;
         stringstream ss;
         ss.precision(2);
-        ss << "(" << tbox.id << ") " << tbox.class_name << " P|" << tbox.confidence;
+        ss << "(" << tbox.id << ")" << tbox.class_name << " P|" << tbox.confidence;
 
         if (tbox.class_idx == 0) {
             pt_text.y = pt_text.y+tbox.box.height-10;
@@ -228,6 +233,8 @@ int main(int argc, char **argv)
     SimilarTracker sim_tracker;
     imvt_cv_tracking_init();
 
+    int input_tracking_num = -1;
+
     ProxyReader reader;
 
     if (!reader.open(mov_file)) {
@@ -289,8 +296,22 @@ int main(int argc, char **argv)
         } else {
             c = (char)cv::waitKey(25 * 10000);
         }
-        //std::cout << "c:" << (int)c << std::endl;
-        if (c == 27) {
+        //if (c >= 0) { std::cout << "keyboard:" << (int)c << std::endl; }
+
+        if (c == 13 /* Enter */) {
+            if (input_tracking_num >= 0) {
+                sim_tracker.trackById(input_tracking_num);  //select tracker object
+                input_tracking_num = -1;
+            }
+        } else if (c >= 48 && c <= 57 /* 0~9 */) {
+            int num = c - 48;
+            if (input_tracking_num < 0) {
+                input_tracking_num = num;
+            } else {
+                input_tracking_num = input_tracking_num * 10 + num;
+            }
+        }
+        else if (c == 27) {
             break;
         } else if (c == 116 /* 't' */) {
             detect = !detect;
@@ -303,6 +324,7 @@ int main(int argc, char **argv)
             //start tracking
             detect = 1;
         }
+
         frame_seq++;
     }
 
