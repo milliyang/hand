@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <set>
 #include <string>
+#include <map>
 
 #include "Hungarian.h"
 #include "KalmanTracker.h"
@@ -16,13 +17,16 @@
 #include "opencv2/highgui/highgui.hpp"
 
 using RectBox = cv::Rect_<float>;
+using IntMap  = std::map<int,int>;
 
 typedef struct TrackingBox {
-    int frame;
-    int id;
-    RectBox box;
-    int class_idx;
-    float confidence;
+    int      frame;
+    uint8_t  tracking;
+    uint8_t  reserved;
+    uint16_t class_idx;
+    int      id;
+    RectBox     box;
+    float       confidence;
     std::string class_name;
 } TrackingBox;
 

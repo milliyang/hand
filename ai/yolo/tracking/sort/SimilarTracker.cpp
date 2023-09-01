@@ -75,7 +75,13 @@ std::vector<TrackingBox> SimilarTracker::getBoxes(void)
     for (const auto &obj : objects_) {
         int age = cur_frame_seq_ - obj.tbox_.frame;
         if (age <= SORT_OBJECT_HIDDEN_AGE_MAX) {
-            result.push_back(obj.tbox_);
+            TrackingBox tbox = obj.tbox_;
+            if (tbox.id == main_trk_id_) {
+                tbox.tracking = 1;
+            } else {
+                tbox.tracking = 0;
+            }
+            result.push_back(tbox);
         }        
     }
     return result;
@@ -87,6 +93,12 @@ std::vector<TrackingBox> SimilarTracker::getHiddenBoxes(void)
     for (const auto &obj : objects_) {
         int age = cur_frame_seq_ - obj.tbox_.frame;
         if (age > SORT_OBJECT_HIDDEN_AGE_MAX) {
+            TrackingBox tbox = obj.tbox_;
+            if (tbox.id == main_trk_id_) {
+                tbox.tracking = 1;
+            } else {
+                tbox.tracking = 0;
+            }
             result.push_back(obj.tbox_);
         }
     }

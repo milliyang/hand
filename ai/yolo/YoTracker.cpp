@@ -138,17 +138,21 @@ void draw_tracking_boxes_with_style(cv::Mat &frame, const std::vector<TrackingBo
         ss.precision(2);
         ss << "(" << tbox.id << ")" << tbox.class_name << " P|" << tbox.confidence;
 
+        int thick = thickness;
+        if (tbox.tracking) {
+            thick = 4;
+        }
         if (tbox.class_idx == 0) {
             pt_text.y = pt_text.y+tbox.box.height-10;
             pt_text.y = std::min(pt_text.y, 416);
             putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, CC_HUMAN_YELLOW, 1, 8);
-            cv::rectangle(frame, tbox.box, CC_HUMAN_YELLOW, thickness, lineType);
+            cv::rectangle(frame, tbox.box, CC_HUMAN_YELLOW, thick, lineType);
         } else if (tbox.class_idx == 1) {
             putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, CC_FACE_GREEN, 1, 8);
-            cv::rectangle(frame, tbox.box, CC_FACE_GREEN, thickness, lineType);
+            cv::rectangle(frame, tbox.box, CC_FACE_GREEN, thick, lineType);
         } else {
             putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, CC_HAND_BLUE, 1, 8);
-            cv::rectangle(frame, tbox.box, CC_HAND_BLUE, thickness, lineType);
+            cv::rectangle(frame, tbox.box, CC_HAND_BLUE, thick, lineType);
         }
     }
 }
@@ -161,6 +165,7 @@ void run_and_draw_with_sort_tracker(SimilarTracker &trker, CheapSort &sort, cv::
 
     for (auto ybox : yolo_boxs) {
         t_box.frame = seq;
+        t_box.tracking = 0;
         t_box.id = -1;
         t_box.box.x = ybox.left;
         t_box.box.y = ybox.top;

@@ -64,6 +64,7 @@ void CheapSort::Init(vector<TrackingBox> t_boxes)
     for (auto it = trackers_.begin(); it != trackers_.end();) {
         TrackingBox res;
         res.box = (*it).get_state();
+        res.tracking = 0;
         res.id = (*it).m_id;
         res.frame = frame_count_;
         res.class_name = (*it).class_name_;
@@ -217,14 +218,15 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     for (auto & trker : trackers_) {
         if ((trker.m_time_since_update < 1) &&
             (trker.m_hit_streak >= min_hits_ || frame_count_ <= min_hits_)) {
-            TrackingBox res;
-            res.box         = trker.get_state();
-            res.id          = trker.m_id;
-            res.frame       = frame_count_;
-            res.class_name  = trker.class_name_;
-            res.confidence  = trker.confidence_;
-            res.class_idx   = trker.class_idx_;
-            tracking_result_.push_back(res);
+            TrackingBox tbox;
+            tbox.box         = trker.get_state();
+            tbox.tracking  = 0;
+            tbox.id          = trker.m_id;
+            tbox.frame       = frame_count_;
+            tbox.class_name  = trker.class_name_;
+            tbox.confidence  = trker.confidence_;
+            tbox.class_idx   = trker.class_idx_;
+            tracking_result_.push_back(tbox);
         }
     }
 
