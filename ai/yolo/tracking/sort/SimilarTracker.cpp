@@ -83,7 +83,7 @@ std::vector<TrackingBox> SimilarTracker::getBoxes(void)
                 tbox.tracking = 0;
             }
             result.push_back(tbox);
-        }        
+        }
     }
     return result;
 }

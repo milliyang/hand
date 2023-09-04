@@ -236,7 +236,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     for (auto it = trackers_.begin(); it != trackers_.end();) {
         // remove dead tracker
         if ((*it).m_time_since_update > max_age_) {
-            LOGD("expire id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
+        	//LOGD("expire id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
             it = trackers_.erase(it);
         } else {
             ++it;
