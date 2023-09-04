@@ -12,9 +12,11 @@
 #include <math.h>
 #include "Hungarian.h"
 
-#ifdef CONFIG_SPDLOG
 #define LOG_TAG "HungAlgo"
+#ifdef CONFIG_SPDLOG
 #include "log.h"
+#else
+#include "sys/log/imvt_log.h"
 #endif
 
 HungarianAlgorithm::HungarianAlgorithm() {}

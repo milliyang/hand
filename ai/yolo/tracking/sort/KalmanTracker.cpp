@@ -1,8 +1,10 @@
 #include "KalmanTracker.h"
 
-#ifdef CONFIG_SPDLOG
 #define LOG_TAG "kalman"
+#ifdef CONFIG_SPDLOG
 #include "log.h"
+#else
+#include "sys/log/imvt_log.h"
 #endif
 
 int KalmanTracker::kf_count = 1;

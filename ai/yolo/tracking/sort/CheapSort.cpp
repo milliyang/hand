@@ -1,8 +1,10 @@
 #include "CheapSort.h"
 
-#ifdef CONFIG_SPDLOG
 #define LOG_TAG "sort"
+#ifdef CONFIG_SPDLOG
 #include "log.h"
+#else
+#include "sys/log/imvt_log.h"
 #endif
 
 bool check_box_valid(const cv::Rect_<float> &bb)

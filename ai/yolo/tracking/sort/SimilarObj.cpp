@@ -1,10 +1,16 @@
 #include "SimilarObj.h"
 
-#include "opencv2/objdetect.hpp"        //hog
+#if USE_SSIM
+    //
+#else
+    #include "opencv2/objdetect.hpp"        //hog
+#endif
 
-#ifdef CONFIG_SPDLOG
 #define LOG_TAG "SimObj"
+#ifdef CONFIG_SPDLOG
 #include "log.h"
+#else
+#include "sys/log/imvt_log.h"
 #endif
 
 #define SSIM_FEATURE_SIZE   (8)
@@ -120,6 +126,8 @@ void SimilarObj::generateSsimImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &o
 
 void SimilarObj::generateHogImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &out)
 {
+#if USE_SSIM
+#else
     int x = box.x;
     int y = box.y;
     int w = box.width ;
@@ -159,6 +167,7 @@ void SimilarObj::generateHogImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &ou
         Hogfeat.at<float>(i,0)=ders.at(i);
     }
     out = Hogfeat;
+#endif
 }
 
 void SimilarObj::init(cv::Mat &frame, const TrackingBox &tbox, int id)

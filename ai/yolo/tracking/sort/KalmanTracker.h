@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef __KALMAN_H__
-#define __KALMAN_H__
+#ifndef __KalmanTracker_H__
+#define __KalmanTracker_H__
 
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"

@@ -1,13 +1,16 @@
 #include "SimilarTracker.h"
 
-#ifdef CONFIG_SPDLOG
 #define LOG_TAG "SimTrker"
+
+#ifdef CONFIG_SPDLOG
 #include "log.h"
+#else
+#include "sys/log/imvt_log.h"
 #endif
 
 #define SSIM_FEATURE_SIZE   (8)
 
-static bool check_box_valid(const cv::Rect_<float> &bb)
+static bool check_box_valid(const RectBox &bb)
 {
     if (bb.x >= 0 && bb.y >= 0) {
         return true;
@@ -18,7 +21,7 @@ static bool check_box_valid(const cv::Rect_<float> &bb)
 }
 
 // Computes IOU between two bounding boxes
-static float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
+static float GetIOU(RectBox bb_test, RectBox bb_gt)
 {
     float in = (bb_test & bb_gt).area();
     float un = bb_test.area() + bb_gt.area() - in;
@@ -135,7 +138,7 @@ void SimilarTracker::find_safe_boxes(std::set<int> &safe, std::vector<TrackingBo
             }
         }
     }
-    for (int i = 0; i < used.size(); i++) {
+    for (int i = 0; i < (int)used.size(); i++) {
         if (used[i] == 0) {
             safe.insert(i);
         }
@@ -168,6 +171,8 @@ void SimilarTracker::check_and_remove_object(void)
 
 std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<TrackingBox> &tboxes)
 {
+    assert(frame.rows == 416);
+    assert(frame.cols == 416);
     if (check_and_reinit(frame, tboxes)) {
         return getBoxes();
     }
@@ -217,14 +222,14 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
     }
 
     //try new object
-    if (tboxes.size() > cur_max_objects_) {
+    if ((int) tboxes.size() > cur_max_objects_) {
         LOGD("Try new object\n");
         for (auto i: box_not_match) {
             insert_new_object(frame, tboxes[i]);
         }
     } else {
         //compare unmatch object, with box_not_match
-        for (int obj_idx = 0; obj_idx < objects_.size(); obj_idx++) {
+        for (int obj_idx = 0; obj_idx < (int) objects_.size(); obj_idx++) {
             if (obj_match[obj_idx]) {
                 continue;
             }
