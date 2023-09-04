@@ -42,7 +42,6 @@ private:
     int         main_trk_id_;
     uint32_t    uuid_;
     int         cur_frame_seq_;
-    int         cur_max_objects_;
     IntMap      obj_id_map_;       //sort_id -> obj_id_
 
     std::vector<TrackingBox>    cur_tboxes_;

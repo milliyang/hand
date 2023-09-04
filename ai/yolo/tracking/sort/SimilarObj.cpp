@@ -15,10 +15,9 @@
 
 #define SSIM_FEATURE_SIZE   (8)
 
-#define CLAMP(value, mmin, mmax) (mmin < mmax           \
-  ? (value < mmin ? mmin : value > mmax ? mmax : value) \
-  : (value < mmax ? mmax : value > mmin ? mmin : value) \
-)
+#define SIM_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define SIM_MAX(a, b) ((a) > (b) ? (a) : (b))
+#define CLAMP(x, min, max) SIM_MAX(min, SIM_MIN(x, max))
 
 static bool check_box_valid(const cv::Rect_<float> &bb)
 {
