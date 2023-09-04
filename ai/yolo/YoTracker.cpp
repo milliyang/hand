@@ -289,7 +289,7 @@ int main(int argc, char **argv)
         }
 
         // Display the resulting frame
-        cv::imshow("YoTracker",  frame);
+        cv::imshow("YoloTracker",  frame);
         if (show_once) {
             cv::imshow("SimTracker", frame);    show_once = 0;
         }

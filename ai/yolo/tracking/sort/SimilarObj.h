@@ -1,17 +1,6 @@
 #pragma once
 
-#include <iterator>
-#include <iostream>
-#include <fstream>
-#include <iomanip>  // to format image names using setw() and setfill()
-#include <unistd.h>
-#include <stdint.h>
-#include <set>
-
 #include "sort_def.h"
-
-#include "opencv2/video/tracking.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
 #define USE_SSIM    (1)
 
@@ -31,11 +20,10 @@ public:
     TrackingBox tbox_;
 
 private:
-    void generateSsimImage(cv::Mat &in, RectBox box, cv::Mat &out);
-    void generateHogImage(cv::Mat &in, RectBox box, cv::Mat &out);
+    void generateSsimImage(cv::Mat &in, const RectBox &box, cv::Mat &out);
+    void generateHogImage(cv::Mat &in,  const RectBox &box, cv::Mat &out);
 
 private:
     uint8_t     inited_;
-    
     cv::Mat     mat_roi_;
 };

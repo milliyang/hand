@@ -19,7 +19,7 @@
 #define SIM_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define CLAMP(x, min, max) SIM_MAX(min, SIM_MIN(x, max))
 
-static bool check_box_valid(const cv::Rect_<float> &bb)
+static bool check_box_valid(const RectBox &bb)
 {
     if (bb.x >= 0 && bb.y >= 0) {
         return true;
@@ -30,7 +30,7 @@ static bool check_box_valid(const cv::Rect_<float> &bb)
 }
 
 // Computes IOU between two bounding boxes
-static float GetIOU(cv::Rect_<float> bb_test, cv::Rect_<float> bb_gt)
+static float GetIOU(const RectBox &bb_test, const RectBox &bb_gt)
 {
     float in = (bb_test & bb_gt).area();
     float un = bb_test.area() + bb_gt.area() - in;
@@ -102,7 +102,7 @@ static cv::Scalar calc_image_ssim( const cv::Mat& i1, const cv::Mat& i2)
     return mssim;
 }
 
-void SimilarObj::generateSsimImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &out)
+void SimilarObj::generateSsimImage(cv::Mat &in, const RectBox &box, cv::Mat &out)
 {
     int x = box.x;
     int y = box.y;
@@ -123,7 +123,7 @@ void SimilarObj::generateSsimImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &o
     cv::resize(crop, out, cv::Size(SSIM_FEATURE_SIZE, SSIM_FEATURE_SIZE), 0, 0, cv::INTER_LINEAR);
 }
 
-void SimilarObj::generateHogImage(cv::Mat &in, cv::Rect_<float> box, cv::Mat &out)
+void SimilarObj::generateHogImage(cv::Mat &in, const RectBox &box, cv::Mat &out)
 {
 #if USE_SSIM
 #else

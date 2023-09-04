@@ -1,21 +1,7 @@
 #pragma once
 
-#include <iterator>
-#include <iostream>
-#include <fstream>
-#include <iomanip>  // to format image names using setw() and setfill()
-#include <unistd.h>
-#include <stdint.h>
-#include <set>
-#include <map>
-
 #include "sort_def.h"
 #include "SimilarObj.h"
-
-#include "opencv2/video/tracking.hpp"
-#include "opencv2/highgui/highgui.hpp"
-
-using ObjectIdMap = std::map<int,int>;
 
 class SimilarTracker
 {
@@ -28,7 +14,6 @@ public:
     void trackByRect(const RectBox &rect);
 
     std::vector<TrackingBox> Run(cv::Mat &frame, std::vector<TrackingBox> &tboxes);
-    //TrackingBox Run(std::vector<TrackingBox> tboxes);
     std::vector<TrackingBox> getBoxes(void);
     std::vector<TrackingBox> getHiddenBoxes(void);
 
@@ -37,6 +22,8 @@ private:
     void find_safe_boxes(std::set<int> &safe, std::vector<TrackingBox> &tboxes);
     void insert_new_object(cv::Mat &frame, TrackingBox &tbox);
     void check_and_remove_object(void);
+
+    void debug_image_ssim(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox);
 
 private:
     int         main_trk_id_;
