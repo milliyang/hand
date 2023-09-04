@@ -19,7 +19,7 @@ public:
 
 private:
     bool check_and_reinit(cv::Mat &frame, std::vector<TrackingBox> &tboxes);
-    void find_safe_boxes(std::set<int> &safe, std::vector<TrackingBox> &tboxes);
+    void find_safe_boxes(std::vector<int> &safe, std::vector<TrackingBox> &tboxes);
     void insert_new_object(cv::Mat &frame, TrackingBox &tbox);
     void check_and_remove_object(void);
 

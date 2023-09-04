@@ -106,21 +106,21 @@ std::vector<TrackingBox> SimilarTracker::getHiddenBoxes(void)
     return result;
 }
 
-void SimilarTracker::find_safe_boxes(std::set<int> &safe, std::vector<TrackingBox> &tboxes)
+void SimilarTracker::find_safe_boxes(std::vector<int> &safe, std::vector<TrackingBox> &tboxes)
 {
     if (tboxes.size() == 0) {
         return;
     } else if (tboxes.size() < 1) {
-        safe.insert(0);
+        safe.push_back(0);
         return;
     }
-    std::vector<uint8_t> used(tboxes.size(), 0);
+    std::vector<uint8_t> v_used(tboxes.size(), 0);
     for (int i = 0; i < (int)tboxes.size(); i++) {
-        if (used[i]) {
+        if (v_used[i]) {
             continue;
         }
         for (int j = i+1; j < (int)tboxes.size(); j++) {
-            if (used[j]) {
+            if (v_used[j]) {
                 continue;
             }
             if (tboxes[i].class_idx != tboxes[j].class_idx) {
@@ -132,13 +132,13 @@ void SimilarTracker::find_safe_boxes(std::set<int> &safe, std::vector<TrackingBo
             //
             float iou = GetIOU(tboxes[i].box, tboxes[j].box);
             if (iou >= 0.001f) {
-                used[i] = used[j] = 1;
+                v_used[i] = v_used[j] = 1;
             }
         }
     }
-    for (int i = 0; i < (int)used.size(); i++) {
-        if (used[i] == 0) {
-            safe.insert(i);
+    for (int i = 0; i < (int)v_used.size(); i++) {
+        if (v_used[i] == 0) {
+            safe.push_back(i);
         }
     }
 }
@@ -183,8 +183,8 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
         cur_frame_seq_ = tboxes[0].frame;
     }
 
-    std::set<int> safe_box_set;
-    find_safe_boxes(safe_box_set, tboxes);
+    std::vector<int> v_safe_box;
+    find_safe_boxes(v_safe_box, tboxes);
 
     std::vector<int>     v_box_not_match;
     std::vector<uint8_t> v_obj_match(objects_.size(), 0);
@@ -286,21 +286,19 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
 
     check_and_remove_object();
 
-    //update object safe
-    if (safe_box_set.size() > 0) {
-        //LOGD("safe_box_set:%d  obj_num:%d\n", (int) safe_box_set.size(), (int)objects_.size());
-        for (auto idx: safe_box_set) {
+    //update object with safe iou
+    if (v_safe_box.size() > 0) {
+        //LOGD("v_safe_box:%d  obj_num:%d\n", (int) v_safe_box.size(), (int)objects_.size());
+        for (auto idx: v_safe_box) {
             auto &tbox = tboxes[idx];
-            int uid = -1;
             auto it = obj_id_map_.find(tbox.id);
             if (it == obj_id_map_.end()) {
                 continue;
             }
-            uid = it->second;
-            //LOGD("[updat_roi] id:[%d-%d] >>\n", tbox.id, uid);
+            //LOGD("[updat_roi] id:[%d-%d] >>\n", tbox.id, it->second);
             for (auto &obj: objects_) {
-                if (obj.tbox_.id == uid) {
-                    debug_image_ssim(obj, frame, tbox);
+                if (obj.tbox_.id == it->second) {
+                    //debug_image_ssim(obj, frame, tbox);
 
                     //LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, uid);
                     obj.update(frame, tbox);
