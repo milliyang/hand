@@ -34,7 +34,6 @@ static float GetIOU(RectBox bb_test, RectBox bb_gt)
 SimilarTracker::SimilarTracker(void)
 {
     uuid_ = 1;
-    cur_max_objects_ = 0;
     main_trk_id_ = -1;
 
     memset(objects_cls_counter_, 0, sizeof(objects_cls_counter_));
@@ -68,7 +67,6 @@ bool SimilarTracker::check_and_reinit(cv::Mat &frame, std::vector<TrackingBox> &
             insert_new_object(frame, tbox);
         }
     }
-    cur_max_objects_ = objects_.size();
     return true;
 }
 
@@ -126,7 +124,7 @@ void SimilarTracker::find_safe_boxes(std::set<int> &safe, std::vector<TrackingBo
                 continue;
             }
             if (tboxes[i].class_idx != tboxes[j].class_idx) {
-                continue;   //the same class, always safe
+                continue;   //not the same class, always safe
             }
 
             //TODO:
@@ -164,7 +162,6 @@ void SimilarTracker::check_and_remove_object(void)
         }
     }
     if (removed) {
-        cur_max_objects_ = (int)objects_.size();
         //LOGD("object removed, num:%d\n", removed);
     }
 }
@@ -187,8 +184,8 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
     std::set<int> safe_box_set;
     find_safe_boxes(safe_box_set, tboxes);
 
-    std::vector<int> box_not_match;
-    std::vector<uint8_t> obj_match(objects_.size(), 0);
+    std::vector<int>     v_box_not_match;
+    std::vector<uint8_t> v_obj_match(objects_.size(), 0);
     uint8_t obj_cls_counter[SORT_YOLO_CLASS_NUM];
     memset(obj_cls_counter, 0, sizeof(obj_cls_counter));
 
@@ -203,43 +200,46 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
         int uid = -1;
         auto it = obj_id_map_.find(tbox.id);
         if (it == obj_id_map_.end()) {
-            box_not_match.push_back(i);
+            v_box_not_match.push_back(i);
             continue;
         }
 
         uid = it->second;
-        //LOGD("00 id:%d -> uid:%d\n", tbox.id, uid);
-        int obj_idx = 0;
+        int jj = 0;
         for (auto &obj: objects_) {
             if (obj.tbox_.id == uid) {
                 obj.updateBox(tbox);
-                obj_match[obj_idx] = 1;
-                //LOGD("[full_match] update id:%d uid:%d match[%d]:%d\n", tbox.id, uid, obj_idx, obj_match[obj_idx]);
+                v_obj_match[jj] = 1;
+                //LOGD("[full_match] update id:[%d-%d] match[%d]:%d\n", tbox.id, uid, jj, v_obj_match[jj]);
                 break;
             }
-            obj_idx++;
+            jj++;
         }
     }
 
     //try new object
-    if ((int) tboxes.size() > cur_max_objects_) {
+    if (tboxes.size() > objects_.size()) {
         LOGD("Try new object\n");
-        for (auto i: box_not_match) {
+        for (auto i: v_box_not_match) {
             insert_new_object(frame, tboxes[i]);
         }
     } else {
-        //compare unmatch object, with box_not_match
+        //compare unmatch object, with v_box_not_match
         for (int obj_idx = 0; obj_idx < (int) objects_.size(); obj_idx++) {
-            if (obj_match[obj_idx]) {
+            if (v_obj_match[obj_idx]) {
                 continue;
             }
-
             auto &obj = objects_[obj_idx];
-            float max_score_idx = -1;
+            int box_not_match_idx = -1;
+            int max_score_idx = -1;
             float max_score = -1;
 
-            for (auto b_idx: box_not_match) {
-                auto &tbox = tboxes[b_idx];
+            for (int kk = 0; kk < v_box_not_match.size(); kk++) {
+                int tbox_idx = v_box_not_match[kk];
+                if (tbox_idx < 0) {
+                    continue;   //used
+                }
+                auto &tbox = tboxes[tbox_idx];
                 if (tbox.class_idx != obj.tbox_.class_idx) {
                     continue;
                 }
@@ -250,15 +250,17 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
                 //quick match witn 1:1 match
                 if (obj_cls_counter[tbox.class_idx] == 1 &&
                     objects_cls_counter_[tbox.class_idx] == 1) {
-                    max_score_idx = b_idx;
+                    max_score_idx = tbox_idx;
                     max_score = 1.0f;
+                    box_not_match_idx = kk;
                     LOGW("[re_match] solo quick match, id:[%d-%d]\n", obj.tbox_.id, obj.tbox_.id);
                     break;
                 }
                 float score = obj.checkMatchScore(frame, tbox.box);
                 if (score > max_score) {
                     max_score = score;
-                    max_score_idx = b_idx;
+                    max_score_idx = tbox_idx;
+                    box_not_match_idx = kk;
                 }
             }
             if (max_score_idx < 0) {
@@ -273,6 +275,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
                 obj.updateBox(tboxes[max_score_idx]);
                 obj.sort_id_ = tboxes[max_score_idx].id;
                 obj_id_map_.emplace(obj.sort_id_, obj.tbox_.id);
+                v_box_not_match[box_not_match_idx] = -1;
                 LOGW("[re_match] id:[%d-%d] OK, max score:%.2f\n", obj.tbox_.id, obj.tbox_.id, max_score);
             } else {
                 LOGD("[re_match] id:[%d-%d] NG, max score:%.2f\n", obj.tbox_.id, obj.tbox_.id, max_score);
@@ -281,8 +284,6 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
     }
 
     check_and_remove_object();
-
-    cur_max_objects_ = std::max(cur_max_objects_, (int)objects_.size());
 
     //update object safe
     if (safe_box_set.size() > 0) {
