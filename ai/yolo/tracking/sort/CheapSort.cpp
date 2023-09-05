@@ -36,9 +36,9 @@ void CheapSort::KalmanGlobalResetId(void)
 CheapSort::CheapSort()
 {
     frame_count_    = 0;
-    max_age_        = TRK_EXPIRE_MAX_AGE;
+    max_age_        = SORT_EXPIRE_MAX_AGE;
     min_hits_       = 2;
-    iou_threshold_  = TRK_IOU_THRESHOLD;
+    iou_threshold_  = SORT_IOU_THRESHOLD;
 }
 
 CheapSort::~CheapSort()
@@ -57,7 +57,7 @@ void CheapSort::Init(vector<TrackingBox> t_boxes)
 
     // initialize kalman trackers using first detections.
     for (uint32_t i = 0; i < t_boxes.size(); i++) {
-        KalmanTracker trk = KalmanTracker(t_boxes[i].box, t_boxes[i].class_idx, t_boxes[i].class_name, t_boxes[i].confidence);
+        KalmanTracker trk = KalmanTracker(t_boxes[i].box, t_boxes[i].class_idx, t_boxes[i].confidence);
         trackers_.push_back(trk);
     }
 
@@ -69,7 +69,6 @@ void CheapSort::Init(vector<TrackingBox> t_boxes)
         res.tracking = 0;
         res.id = (*it).m_id;
         res.frame = frame_count_;
-        res.class_name = (*it).class_name_;
         res.confidence = (*it).confidence_;
         res.class_idx = (*it).class_idx_;
         tracking_result_.push_back(res);
@@ -100,7 +99,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     if (trackers_.size() == 0) {
         if (t_boxes.size() == 0) {
             no_tracker_count_++;
-            if (no_tracker_count_ >= TRK_RESET_ID_FRAME_NUM) {
+            if (no_tracker_count_ >= SORT_RESET_ID_FRAME_NUM) {
                 KalmanGlobalResetId();
                 no_tracker_count_ = 0;
             }
@@ -211,7 +210,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 
     // create and initialise new trackers for unmatched detections
     for (auto umd : unmatchedDetections) {
-        KalmanTracker tracker = KalmanTracker(t_boxes[umd].box, t_boxes[umd].class_idx, t_boxes[umd].class_name, t_boxes[umd].confidence);
+        KalmanTracker tracker = KalmanTracker(t_boxes[umd].box, t_boxes[umd].class_idx, t_boxes[umd].confidence);
         trackers_.push_back(tracker);
     }
 
@@ -225,7 +224,6 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
             tbox.tracking  = 0;
             tbox.id          = trker.m_id;
             tbox.frame       = frame_count_;
-            tbox.class_name  = trker.class_name_;
             tbox.confidence  = trker.confidence_;
             tbox.class_idx   = trker.class_idx_;
             tracking_result_.push_back(tbox);
@@ -236,7 +234,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
     for (auto it = trackers_.begin(); it != trackers_.end();) {
         // remove dead tracker
         if ((*it).m_time_since_update > max_age_) {
-        	//LOGD("expire id:%d cls:%d %s\n", (*it).m_id, (*it).class_idx_, (*it).class_name_.c_str());
+            //LOGD("expire id:%d cls:%d\n", (*it).m_id, (*it).class_idx_);
             it = trackers_.erase(it);
         } else {
             ++it;
@@ -245,7 +243,7 @@ vector<TrackingBox> CheapSort::Run(vector<TrackingBox> t_boxes)
 #endif
 
 #if 1
-    if (trackers_.size() >= TRK_NUM) {
+    if (trackers_.size() >= SORT_NUM) {
         LOGW("[warn] trackers:%d\n", (int) trackers_.size());
     }
 #endif

@@ -11,12 +11,6 @@
 
 #include "sort_def.h"
 
-#define TRK_NUM                 20
-#define TRK_RESET_ID_FRAME_NUM  100
-
-#define TRK_EXPIRE_MAX_AGE          (100)
-#define TRK_IOU_THRESHOLD           (0.3f)
-
 class CheapSort
 {
 public:

@@ -74,6 +74,9 @@ if (USE_CUDA)
 else()
     message(STATUS "USE_CPU")
     add_definitions(-DCPU_ONLY)
+
+    message(STATUS "enable gsan debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=leak -fsanitize=address -fno-omit-frame-pointer -fno-stack-protector")
 endif()
 
 file(GLOB SRC "${ROOT_DIR}/*.cpp"

@@ -77,7 +77,7 @@ MovingObject::MovingObject(Info info, int frameSeq)
     multipleOverlayId_ = -1;
     multipleApartCnt_ = 0;
 
-    kalman_ = KalmanTracker(info.rect, 0, "", 0);
+    kalman_ = KalmanTracker(info.rect, 0, 0);
 
     kcfInitFrameSeq_ = 0;
 

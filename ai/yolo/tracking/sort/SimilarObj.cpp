@@ -19,27 +19,6 @@
 #define SIM_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define CLAMP(x, min, max) SIM_MAX(min, SIM_MIN(x, max))
 
-static bool check_box_valid(const RectBox &bb)
-{
-    if (bb.x >= 0 && bb.y >= 0) {
-        return true;
-    } else {
-        //bb.x == nan
-        return false;
-    }
-}
-
-// Computes IOU between two bounding boxes
-static float GetIOU(const RectBox &bb_test, const RectBox &bb_gt)
-{
-    float in = (bb_test & bb_gt).area();
-    float un = bb_test.area() + bb_gt.area() - in;
-    if (un < DBL_EPSILON) {
-        return 0;
-    }
-    return (float)(in / un);
-}
-
 SimilarObj::SimilarObj(void)
 {
     inited_ = 0;
@@ -104,15 +83,15 @@ static cv::Scalar calc_image_ssim( const cv::Mat& i1, const cv::Mat& i2)
 
 void SimilarObj::generateSsimImage(cv::Mat &in, const RectBox &box, cv::Mat &out)
 {
-    int x = box.x;
-    int y = box.y;
-    int w = box.width;
-    int h = box.height;
+    int x = (int) box.x;
+    int y = (int) box.y;
+    int w = (int) box.width;
+    int h = (int) box.height;
     w = CLAMP(w, SORT_BOX_MIN, SORT_YOLO_SIZE-2);
     h = CLAMP(h, SORT_BOX_MIN, SORT_YOLO_SIZE-2);
 
     if (x+w >= SORT_YOLO_SIZE) {
-        x = SORT_YOLO_SIZE-1-x;
+        w = SORT_YOLO_SIZE-1-x;
     }
     if (y+h >= SORT_YOLO_SIZE) {
         y = SORT_YOLO_SIZE-1-h;

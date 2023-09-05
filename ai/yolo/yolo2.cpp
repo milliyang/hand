@@ -12,7 +12,7 @@
 #include <vector>
 #include <iostream>
 
-#define LEO_CLASS_80        (0)
+#define LEO_CLASS_80        (1)
 
 #if LEO_CLASS_80
 const static char *yolo2_class_name[] = {
@@ -123,6 +123,16 @@ const static char *yolo2_class_name[] = {
     "train",
 };
 #endif
+
+std::string Yolo2::id_to_name(int id)
+{
+    int len = sizeof(yolo2_class_name) / sizeof(char *);
+    if (id < len) {
+        return std::string(yolo2_class_name[id]);
+    } else {
+        return std::to_string(id);
+    }
+}
 
 Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const string &mean_file, const string &label_file)
 {

@@ -19,6 +19,8 @@ public:
     Yolo2(const string &model_file, const string &trained_file, const string &mean_file, const string &label_file);
     std::vector<YoloBox> Run(const cv::Mat &img, int N = 5);
 
+    static std::string id_to_name(int id);
+
 private:
     void SetMean(const string &mean_file);
     void SetMean(const string& mean_file, const string& mean_value);

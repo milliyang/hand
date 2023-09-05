@@ -22,8 +22,10 @@ private:
     void find_safe_boxes(std::vector<int> &safe, std::vector<TrackingBox> &tboxes);
     void insert_new_object(cv::Mat &frame, TrackingBox &tbox);
     void check_and_remove_object(void);
+    void remove_sort_id(int sort_id);
 
     void debug_image_ssim(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox);
+    void debug_check_box_valid(std::vector<TrackingBox> &tboxes);
 
 private:
     int         main_trk_id_;

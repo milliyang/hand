@@ -25,9 +25,8 @@ typedef struct TrackingBox {
     uint8_t  reserved;
     uint16_t class_idx;
     int      id;
-    RectBox     box;
-    float       confidence;
-    std::string class_name;
+    RectBox  box;
+    float    confidence;
 } TrackingBox;
 
 #define SORT_BOX_MIN                (8)
@@ -40,3 +39,11 @@ typedef struct TrackingBox {
 #define SORT_CLS_HUMAN (0)
 #define SORT_CLS_FACE  (1)
 #define SORT_CLS_HAND  (2)
+
+
+#define SORT_NUM                        (20)
+#define SORT_RESET_ID_FRAME_NUM         (100)
+
+#define SORT_EXPIRE_MAX_AGE             (30)
+#define SORT_IOU_THRESHOLD              (0.3f)
+

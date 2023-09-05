@@ -88,7 +88,7 @@ void drawYoloResult(cv::Mat &frame, int seq, std::vector<YoloBox> &yolo_boxs)
         for (auto ybox : yolo_boxs) {
             stringstream ss;
             ss.precision(2);
-            ss << "("<< ybox.class_idx << ")" << ybox.class_name << " P|" << ybox.confidence;
+            ss << "("<< ybox.class_idx << ")" << Yolo2::id_to_name(ybox.class_idx) << " P|" << ybox.confidence;
             //std::cout << "Yolo :" << ybox.class_name << " idx:" << ybox.class_idx << " confidence:" << ybox.confidence << " " << ybox.left << " " << ybox.top << " " << ybox.right << " " << ybox.bottom << " frame_seq:" << seq << std::endl;
             //rectangle(Mat& img, Rect rec, const Scalar& color, int thickness=1, int lineType=8, int shift=0 )
             cv::Point pt_text;
@@ -117,7 +117,7 @@ void simple_draw_yolo_result(cv::Mat frame, int seq, std::vector<YoloBox> &yolo_
         pt_text.y = box.y > 2 ? box.y - 5 : 0;
         stringstream ss;
         ss.precision(2);
-        ss << "(" << -1 << ") " << ybox.class_name << " P|" << ybox.confidence;
+        ss << "(" << -1 << ") " <<  Yolo2::id_to_name(ybox.class_idx) << " P|" << ybox.confidence;
 
         cv::rectangle(frame, box, cv::Scalar(255, 0, 0));
         putText(frame, ss.str(), pt_text, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 250, 0), 1, 8);
@@ -136,7 +136,7 @@ void draw_tracking_boxes_with_style(cv::Mat &frame, const std::vector<TrackingBo
         pt_text.y = tbox.box.y > 2 ? tbox.box.y - 5 : 0;
         stringstream ss;
         ss.precision(2);
-        ss << "(" << tbox.id << ")" << tbox.class_name << " P|" << tbox.confidence;
+        ss << "(" << tbox.id << ")" << Yolo2::id_to_name(tbox.class_idx) << " P|" << tbox.confidence;
 
         int thick = thickness;
         if (tbox.tracking) {
@@ -173,7 +173,6 @@ void run_and_draw_with_sort_tracker(SimilarTracker &trker, CheapSort &sort, cv::
         t_box.box.height = ybox.bottom - ybox.top;
 
         t_box.class_idx = ybox.class_idx;
-        t_box.class_name = ybox.class_name;
         t_box.confidence = ybox.confidence;
         track_boxes.push_back(t_box);
     }
@@ -316,7 +315,7 @@ int main(int argc, char **argv)
                 input_tracking_num = input_tracking_num * 10 + num;
             }
         }
-        else if (c == 27) {
+        else if (c == 27 /* Escape */ || c == 113 /* 'q' */) {
             break;
         } else if (c == 116 /* 't' */) {
             detect = !detect;

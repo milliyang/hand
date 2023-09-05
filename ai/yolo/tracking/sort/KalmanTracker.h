@@ -24,7 +24,7 @@ public:
         m_age = 0;
         m_id = kf_count;
     }
-    KalmanTracker(StateType initRect, int class_idx, string class_name, float confidence)
+    KalmanTracker(StateType initRect, int class_idx, float confidence)
     {
         init_kf(initRect);
         m_time_since_update = 0;
@@ -35,7 +35,6 @@ public:
         kf_count++;
 
         class_idx_ = class_idx;
-        class_name_ = class_name;
         confidence_ = confidence;
     }
 
@@ -60,7 +59,6 @@ public:
 
     //leo for yolo
     int          class_idx_;
-    std::string  class_name_;
     float        confidence_;
 private:
     void init_kf(StateType stateMat);
