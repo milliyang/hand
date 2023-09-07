@@ -276,6 +276,12 @@ int main(int argc, char **argv)
 
             cv::resize(frame, frame, cv::Size(416, 416));
 
+            if (show_once) {
+                show_once = 0;
+                cv::imshow("YoloTracker", frame);
+                cv::imshow("SimTracker",  frame);
+            }
+
             if (!reader.isStream() || detect) {
                 // Start timer
                 double timer = (double)cv::getTickCount();
@@ -303,11 +309,7 @@ int main(int argc, char **argv)
                 putText(frame, ss.str(), cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1, 8);
             }
 
-            // Display the resulting frame
             cv::imshow("YoloTracker",  frame);
-            if (show_once) {
-                cv::imshow("SimTracker", frame);    show_once = 0;
-            }
 
             if (pause_frame_to_process > 0) { pause_frame_to_process--;}
             frame_seq++;
@@ -316,11 +318,12 @@ int main(int argc, char **argv)
         // Press  ESC on keyboard to exit
         char c;
         if (reader.isStream()) {
-            c = (char)cv::waitKey(25);
+            c = (char)cv::waitKey(15);
         } else {
-            c = (char)cv::waitKey(25 * 10000);
+            c = (char)cv::waitKey(15 * 10000);
         }
         //if (c >= 0) { std::cout << "keyboard:" << (int)c << std::endl; }
+
         if (c == 112 /* p */) {
             pause = !pause;
             pause_frame_to_process = 0;
