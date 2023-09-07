@@ -33,8 +33,8 @@ typedef struct TrackingBox {
 #define SORT_YOLO_SIZE              (416)
 #define SORT_YOLO_CLASS_NUM         (20)
 
-#define SORT_OBJECT_AGE_MAX             (90)        //3s
-#define SORT_OBJECT_HIDDEN_AGE_MAX      (6)         //5frame
+#define SORT_OBJECT_AGE_MAX             (4*30)      //4s
+#define SORT_OBJECT_HIDDEN_AGE_MAX      (8)         //5frame
 
 #define SORT_CLS_HUMAN (0)
 #define SORT_CLS_FACE  (1)

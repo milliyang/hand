@@ -242,6 +242,10 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
         int jj = 0;
         for (auto &obj: objects_) {
             if (obj.tbox_.id == uid) {
+                //@Leo
+                //TODO:
+                // when sort failed, sort_id maybe wrong
+                //
                 obj.updateBox(tbox);
                 v_obj_match[jj] = 1;
                 //LOGD("[full_match] update id:[%d-%d] match[%d]:%d\n", tbox.id, uid, jj, v_obj_match[jj]);
@@ -249,7 +253,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
             }
             jj++;
         }
-    } 
+    }
 
     if (tboxes.size() > objects_.size()) {
         //new object
@@ -307,9 +311,8 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
             if (max_score >= 0.3) {
                 remove_sort_id(obj.sort_id_);
                 obj_id_map_.emplace(obj.sort_id_, obj.tbox_.id);
-
-                obj.updateBox(tboxes[max_score_idx]);
                 obj.sort_id_ = tboxes[max_score_idx].id;
+                obj.updateBox(tboxes[max_score_idx]);
                 v_box_not_match[box_not_match_idx] = BOX_USED;
                 LOGW("[re_match] id:[%d-%d] OK, max score:%.2f\n", obj.tbox_.id, obj.tbox_.id, max_score);
             } else {

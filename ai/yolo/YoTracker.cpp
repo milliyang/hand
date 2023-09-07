@@ -89,7 +89,7 @@ void drawYoloResult(cv::Mat &frame, int seq, std::vector<YoloBox> &yolo_boxs)
             stringstream ss;
             ss.precision(2);
             ss << "("<< ybox.class_idx << ")" << Yolo2::id_to_name(ybox.class_idx) << " P|" << ybox.confidence;
-            //std::cout << "Yolo :" << ybox.class_name << " idx:" << ybox.class_idx << " confidence:" << ybox.confidence << " " << ybox.left << " " << ybox.top << " " << ybox.right << " " << ybox.bottom << " frame_seq:" << seq << std::endl;
+            //std::cout << "Yolo :" << Yolo2::id_to_name(ybox.class_idx) << " idx:" << ybox.class_idx << " confidence:" << ybox.confidence << " " << ybox.left << " " << ybox.top << " " << ybox.right << " " << ybox.bottom << " frame_seq:" << seq << std::endl;
             //rectangle(Mat& img, Rect rec, const Scalar& color, int thickness=1, int lineType=8, int shift=0 )
             cv::Point pt_text;
             pt_text.x = ybox.left;
@@ -136,7 +136,9 @@ void draw_tracking_boxes_with_style(cv::Mat &frame, const std::vector<TrackingBo
         pt_text.y = tbox.box.y > 2 ? tbox.box.y - 5 : 0;
         stringstream ss;
         ss.precision(2);
-        ss << "(" << tbox.id << ")" << Yolo2::id_to_name(tbox.class_idx) << " P|" << tbox.confidence;
+
+        //ss << "(" << tbox.id << ")" << Yolo2::id_to_name(tbox.class_idx) << " P|" << tbox.confidence;
+        ss << tbox.id << "-" << (int)(tbox.confidence * 100);
 
         int thick = thickness;
         if (tbox.tracking) {
@@ -203,7 +205,10 @@ std::vector<YoloBox> selected_person_face_hand_class(std::vector<YoloBox> &yolo_
 {
     std::vector<YoloBox> selected;
     for (int i = 0; i < yolo_boxs.size(); i++) {
-        if (yolo_boxs[i].class_idx <= 2 && yolo_boxs[i].confidence >= 0.15f) {
+        //SORT_CLS_HUMAN
+        //SORT_CLS_FACE
+        //SORT_CLS_HAND
+        if (yolo_boxs[i].class_idx == SORT_CLS_HUMAN && yolo_boxs[i].confidence >= 0.15f) {
             selected.push_back(yolo_boxs[i]);
         }
     }
@@ -216,6 +221,9 @@ int main(int argc, char **argv)
     int detect = 0;
     int source = 0;
     int show_once = 1;
+    int pause = 0;
+    int pause_frame_to_process = 0; //
+    int frame_seq = 0;
 
     if (argc <= 3) {
         std::cerr << "Usage: "
@@ -246,51 +254,57 @@ int main(int argc, char **argv)
     }
     std::vector<YoloBox> yolo_boxs;
 
-    int frame_seq = 0;
     while (1) {
         cv::Mat frame;
         cv::Rect2d cv_box;
 
-        reader.read(frame);
+        if (pause && pause_frame_to_process <= 0) {
+            //do nothing
+        } else {
+            reader.read(frame);
 
-        // If the frame is empty, break immediately
-        if (frame.empty()) {
-            break;
-        }
+            // If the frame is empty, break immediately
+            if (frame.empty()) {
+                break;
+            }
 
-        cv::resize(frame, frame, cv::Size(416, 416));
+            cv::resize(frame, frame, cv::Size(416, 416));
 
-        if (!reader.isStream() || detect) {
-            // Start timer
-            double timer = (double)cv::getTickCount();
-            std::vector<YoloBox> yolo_boxs = yolo.Run(frame);
-            std::vector<YoloBox> selected = selected_person_face_hand_class(yolo_boxs);
+            if (!reader.isStream() || detect) {
+                // Start timer
+                double timer = (double)cv::getTickCount();
+                std::vector<YoloBox> yolo_boxs = yolo.Run(frame);
+                std::vector<YoloBox> selected = selected_person_face_hand_class(yolo_boxs);
 #if 0
-            runFooTracker(fooTracker, frame, selected);
-            drawYoloResult(frame, frame_seq, selected);
-            drawFooTracker(fooTracker, frame);
+                runFooTracker(fooTracker, frame, selected);
+                drawYoloResult(frame, frame_seq, selected);
+                drawFooTracker(fooTracker, frame);
 #elif 1
-            run_and_draw_with_sort_tracker(sim_tracker, cheap_sort, frame, frame_seq, selected);
+                run_and_draw_with_sort_tracker(sim_tracker, cheap_sort, frame, frame_seq, selected);
 #elif 0
-            int ok = imvt_cv_tracking_detect(frame, cv_box);
-            drawCvTrackingResult(ok, frame, cv_box);
+                int ok = imvt_cv_tracking_detect(frame, cv_box);
+                drawCvTrackingResult(ok, frame, cv_box);
 #else
-            simple_draw_yolo_result(frame, frame_seq, selected);
+                simple_draw_yolo_result(frame, frame_seq, selected);
 #endif
 
-            // Calculate Frames per second (FPS)
-            float fps = cv::getTickFrequency() / ((double)cv::getTickCount() - timer);
-            stringstream ss;
-            ss.setf(std::ios::fixed);
-            ss.precision(2);
-            ss << "FPS: " << fps;
-            putText(frame, ss.str(), cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1, 8);
-        }
+                // Calculate Frames per second (FPS)
+                float fps = cv::getTickFrequency() / ((double)cv::getTickCount() - timer);
+                stringstream ss;
+                ss.setf(std::ios::fixed);
+                ss.precision(2);
+                ss << "FPS:" << fps << " SEQ:" << frame_seq;
+                putText(frame, ss.str(), cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1, 8);
+            }
 
-        // Display the resulting frame
-        cv::imshow("YoloTracker",  frame);
-        if (show_once) {
-            cv::imshow("SimTracker", frame);    show_once = 0;
+            // Display the resulting frame
+            cv::imshow("YoloTracker",  frame);
+            if (show_once) {
+                cv::imshow("SimTracker", frame);    show_once = 0;
+            }
+
+            if (pause_frame_to_process > 0) { pause_frame_to_process--;}
+            frame_seq++;
         }
 
         // Press  ESC on keyboard to exit
@@ -301,8 +315,13 @@ int main(int argc, char **argv)
             c = (char)cv::waitKey(25 * 10000);
         }
         //if (c >= 0) { std::cout << "keyboard:" << (int)c << std::endl; }
-
-        if (c == 13 /* Enter */) {
+        if (c == 112 /* p */) {
+            pause = !pause;
+            pause_frame_to_process = 0;
+        } else if (c == 110 /* n */) {
+            pause = 1;
+            pause_frame_to_process++;
+        } else if (c == 13 /* Enter */) {
             if (input_tracking_num >= 0) {
                 sim_tracker.trackById(input_tracking_num);  //select tracker object
                 input_tracking_num = -1;
@@ -314,22 +333,16 @@ int main(int argc, char **argv)
             } else {
                 input_tracking_num = input_tracking_num * 10 + num;
             }
-        }
-        else if (c == 27 /* Escape */ || c == 113 /* 'q' */) {
+        } else if (c == 27 /* Escape */ || c == 113 /* 'q' */) {
             break;
         } else if (c == 116 /* 't' */) {
             detect = !detect;
         } else if (c == 115 /* 's' */) {
-            //select roi
-            cv::Rect2d bbox;
-            bbox = selectROI("YoTracker", frame, false);
+            cv::Rect2d bbox = selectROI("YoloTracker", frame, false);
             imvt_cv_tracking_enable(1, bbox.x, bbox.y, bbox.width, bbox.height);
-
-            //start tracking
-            detect = 1;
+            detect = 1; //start tracking
         }
 
-        frame_seq++;
     }
 
     reader.close();

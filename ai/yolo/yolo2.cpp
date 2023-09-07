@@ -119,21 +119,20 @@ const static char *yolo2_class_name20[] = {
     "train",
 };
 
-int Yolo2::yolo_class_num;
+int Yolo2::s_yolo2_classes;
 
 std::string Yolo2::id_to_name(int id)
 {
-    const char **names;
-    if (yolo_class_num == 80) {
-        names = &yolo2_class_name80[0];
+    if (s_yolo2_classes == 80) {
+        if (id < s_yolo2_classes) {
+            return std::string(yolo2_class_name80[id]);
+        }
     } else {
-        names = &yolo2_class_name20[0];
+        if (id < s_yolo2_classes) {
+            return std::string(yolo2_class_name20[id]);
+        }
     }
-    if (id < yolo_class_num) {
-        return std::to_string(*names[id]);
-    } else {
-        return std::to_string(id);
-    }
+    return std::to_string(id);
 }
 
 Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const string &mean_file, const string &label_file)
@@ -186,11 +185,11 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
 
     if (net_->name() == "yolov2") {
         layer.classes = 80;
-        yolo_class_num = 80;
+        s_yolo2_classes = 80;
         class_names_ = yolo2_class_name80;
     } else {
         layer.classes = 20;
-        yolo_class_num = 20;
+        s_yolo2_classes = 20;
         class_names_ = yolo2_class_name20;
     }
     std::cerr << "yolo output class num:" << layer.classes << std::endl;
@@ -268,10 +267,15 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
         confidence_threshold_ = 0.5;
         layer.outputs = layer.sub_layer[0].outputs;
     } else {
+        confidence_threshold_ = 0.15;
+
+        layer.sub_layer_num = 0;
+        layer.sub_layer_continue_memory = 0;
+        layer.w = layer.h = 13;
+        layer.n = 5;
+        layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
+        layer.sub_layer[0].outputs = layer.outputs;
         if (net_->name() == "yolov2") {
-            layer.sub_layer_num = 0;
-            layer.sub_layer_continue_memory = 0;
-            layer.w = layer.h = 13;
             layer.biases[0] = 0.57273; //region_param.anchors:
             layer.biases[1] = 0.677385;
             layer.biases[2] = 1.87446;
@@ -284,16 +288,8 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
             layer.biases[9] = 9.16828;
             //layer     filters    size              input                output
             //30 conv    425  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 425 0.147 BF
-            //71994
-            layer.n = 5;
-            layer.w = layer.h = 13;
-            layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
-            layer.sub_layer[0].outputs = layer.outputs;
-            confidence_threshold_ = 0.30;
+            //layer.outputs=71994
         } else {
-            layer.sub_layer_num = 0;
-            layer.sub_layer_continue_memory = 0;
-            layer.w = layer.h = 13;
             layer.biases[0] = 1.3221;   //region_param.anchors:
             layer.biases[1] = 1.73145;
             layer.biases[2] = 3.19275;
@@ -306,12 +302,7 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
             layer.biases[9] = 10.0071;
             //layer     filters    size              input                output
             //30 conv    125  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 125 0.147 BF
-            //21125
-            layer.n = 5;
-            layer.w = layer.h = 13;
-            layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
-            layer.sub_layer[0].outputs = layer.outputs;
-            confidence_threshold_ = 0.2;
+            //layer.outputs=21125
         }
     }
     printf("layer.outputs:%d\n", layer.outputs);

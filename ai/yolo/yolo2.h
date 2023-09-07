@@ -20,7 +20,7 @@ public:
     std::vector<YoloBox> Run(const cv::Mat &img, int N = 5);
 
     static std::string id_to_name(int id);
-    static int yolo_class_num;
+    static int s_yolo2_classes;
 
 private:
     void SetMean(const string &mean_file);
