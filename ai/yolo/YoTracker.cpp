@@ -201,6 +201,8 @@ void drawCvTrackingResult(bool ok, cv::Mat frame, cv::Rect2d cv_box)
     }
 }
 
+static int s_tracking_class = SORT_CLS_HUMAN;
+
 std::vector<YoloBox> selected_person_face_hand_class(std::vector<YoloBox> &yolo_boxs)
 {
     std::vector<YoloBox> selected;
@@ -208,7 +210,7 @@ std::vector<YoloBox> selected_person_face_hand_class(std::vector<YoloBox> &yolo_
         //SORT_CLS_HUMAN
         //SORT_CLS_FACE
         //SORT_CLS_HAND
-        if (yolo_boxs[i].class_idx == SORT_CLS_HUMAN && yolo_boxs[i].confidence >= 0.15f) {
+        if (yolo_boxs[i].class_idx == s_tracking_class && yolo_boxs[i].confidence >= 0.15f) {
             selected.push_back(yolo_boxs[i]);
         }
     }
@@ -218,7 +220,7 @@ std::vector<YoloBox> selected_person_face_hand_class(std::vector<YoloBox> &yolo_
 int main(int argc, char **argv)
 {
     int ret;
-    int detect = 0;
+    int detect = 1;
     int source = 0;
     int show_once = 1;
     int pause = 0;
@@ -230,6 +232,10 @@ int main(int argc, char **argv)
                   << argv[0] << " deploy.prototxt network.caffemodel xxx.mov" << std::endl
                   << argv[0] << " deploy.prototxt network.caffemodel /dev/video0" << std::endl;
         return 1;
+    }
+    if (argc == 5) {
+        s_tracking_class = atoi(argv[4]);
+        std::cerr << "Track Class: " << s_tracking_class << std::endl;
     }
 
     FooTracker fooTracker;
