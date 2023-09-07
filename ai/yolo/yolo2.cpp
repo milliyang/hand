@@ -12,10 +12,7 @@
 #include <vector>
 #include <iostream>
 
-#define LEO_CLASS_80        (1)
-
-#if LEO_CLASS_80
-const static char *yolo2_class_name[] = {
+const static char *yolo2_class_name80[] = {
     //"background  ",
     "person",
     "bicycle",
@@ -99,8 +96,7 @@ const static char *yolo2_class_name[] = {
     "toothbrush",
 };
 
-#else
-const static char *yolo2_class_name[] = {
+const static char *yolo2_class_name20[] = {
     "person",
     "face",
     "hand",
@@ -122,13 +118,19 @@ const static char *yolo2_class_name[] = {
     "sofa",
     "train",
 };
-#endif
+
+int Yolo2::yolo_class_num;
 
 std::string Yolo2::id_to_name(int id)
 {
-    int len = sizeof(yolo2_class_name) / sizeof(char *);
-    if (id < len) {
-        return std::string(yolo2_class_name[id]);
+    const char **names;
+    if (yolo_class_num == 80) {
+        names = &yolo2_class_name80[0];
+    } else {
+        names = &yolo2_class_name20[0];
+    }
+    if (id < yolo_class_num) {
+        return std::to_string(*names[id]);
     } else {
         return std::to_string(id);
     }
@@ -181,11 +183,18 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
     std::cerr << "net name: " << net_->name() << " type: " << layer.type << std::endl;
 
     layer.batch = 1;
-#if LEO_CLASS_80
-    layer.classes = 80;
-#else
-    layer.classes = 20;
-#endif
+
+    if (net_->name() == "yolov2") {
+        layer.classes = 80;
+        yolo_class_num = 80;
+        class_names_ = yolo2_class_name80;
+    } else {
+        layer.classes = 20;
+        yolo_class_num = 20;
+        class_names_ = yolo2_class_name20;
+    }
+    std::cerr << "yolo output class num:" << layer.classes << std::endl;
+
     layer.classfix = 1;
     layer.coords = 4;
     layer.background = 0;
@@ -259,51 +268,51 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
         confidence_threshold_ = 0.5;
         layer.outputs = layer.sub_layer[0].outputs;
     } else {
-#if LEO_CLASS_80
-        layer.sub_layer_num = 0;
-        layer.sub_layer_continue_memory = 0;
-        layer.w = layer.h = 13;
-        layer.biases[0] = 0.57273; //region_param.anchors:
-        layer.biases[1] = 0.677385;
-        layer.biases[2] = 1.87446;
-        layer.biases[3] = 2.06253;
-        layer.biases[4] = 3.33843;
-        layer.biases[5] = 5.47434;
-        layer.biases[6] = 7.88282;
-        layer.biases[7] = 3.52778;
-        layer.biases[8] = 9.77052;
-        layer.biases[9] = 9.16828;
-        //layer     filters    size              input                output
-        //30 conv    425  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 425 0.147 BF
-        //71994
-        layer.n = 5;
-        layer.w = layer.h = 13;
-        layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
-        layer.sub_layer[0].outputs = layer.outputs;
-        confidence_threshold_ = 0.45;
-#else
-        layer.sub_layer_num = 0;
-        layer.sub_layer_continue_memory = 0;
-        layer.w = layer.h = 13;
-        layer.biases[0] = 1.3221;   //region_param.anchors:
-        layer.biases[1] = 1.73145;
-        layer.biases[2] = 3.19275;
-        layer.biases[3] = 4.00944;
-        layer.biases[4] = 5.05587;
-        layer.biases[5] = 8.09892;
-        layer.biases[6] = 9.47112;
-        layer.biases[7] = 4.84053;
-        layer.biases[8] = 11.2364;
-        layer.biases[9] = 10.0071;
-        //layer     filters    size              input                output
-        //30 conv    125  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 125 0.147 BF
-        //21125
-        layer.n = 5;
-        layer.w = layer.h = 13;
-        layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
-        layer.sub_layer[0].outputs = layer.outputs;
-        confidence_threshold_ = 0.2;
-#endif
+        if (net_->name() == "yolov2") {
+            layer.sub_layer_num = 0;
+            layer.sub_layer_continue_memory = 0;
+            layer.w = layer.h = 13;
+            layer.biases[0] = 0.57273; //region_param.anchors:
+            layer.biases[1] = 0.677385;
+            layer.biases[2] = 1.87446;
+            layer.biases[3] = 2.06253;
+            layer.biases[4] = 3.33843;
+            layer.biases[5] = 5.47434;
+            layer.biases[6] = 7.88282;
+            layer.biases[7] = 3.52778;
+            layer.biases[8] = 9.77052;
+            layer.biases[9] = 9.16828;
+            //layer     filters    size              input                output
+            //30 conv    425  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 425 0.147 BF
+            //71994
+            layer.n = 5;
+            layer.w = layer.h = 13;
+            layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
+            layer.sub_layer[0].outputs = layer.outputs;
+            confidence_threshold_ = 0.30;
+        } else {
+            layer.sub_layer_num = 0;
+            layer.sub_layer_continue_memory = 0;
+            layer.w = layer.h = 13;
+            layer.biases[0] = 1.3221;   //region_param.anchors:
+            layer.biases[1] = 1.73145;
+            layer.biases[2] = 3.19275;
+            layer.biases[3] = 4.00944;
+            layer.biases[4] = 5.05587;
+            layer.biases[5] = 8.09892;
+            layer.biases[6] = 9.47112;
+            layer.biases[7] = 4.84053;
+            layer.biases[8] = 11.2364;
+            layer.biases[9] = 10.0071;
+            //layer     filters    size              input                output
+            //30 conv    125  1 x 1 / 1    13 x  13 x1024   ->    13 x  13 x 125 0.147 BF
+            //21125
+            layer.n = 5;
+            layer.w = layer.h = 13;
+            layer.outputs = layer.w * layer.h * layer.n * (layer.coords + 1 + layer.classes);
+            layer.sub_layer[0].outputs = layer.outputs;
+            confidence_threshold_ = 0.2;
+        }
     }
     printf("layer.outputs:%d\n", layer.outputs);
 
@@ -315,7 +324,6 @@ Yolo2::Yolo2(const string &model_file, const string &trained_caffemodel, const s
     classes_ = layer.classes;
     total_bbox_ = grid_ * grid_ * bbox_each_grid; //13 * 13 * 5; anchor box
     //channel = ( 5 * (5+20) = 125)
-    class_names_ = yolo2_class_name;
     //eg.
     //每个box包含5个坐标值和20个类别，所以总共是5 * （5+20）= 125个输出维度
     //hisi:
@@ -800,7 +808,7 @@ void Yolo2::SelectYoloBox(detection *dets, int nbox)
             ybox.bottom = bottom;
             ybox.confidence = prob;
             ybox.class_idx = class_idx;
-            ybox.class_name = (char *)yolo2_class_name[class_idx];
+            ybox.class_name = (char *)class_names_[class_idx];
             this->yolo_boxs_.push_back(ybox);
 
             if (dets[i].mask) {
