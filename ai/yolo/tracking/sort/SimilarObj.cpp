@@ -1,9 +1,14 @@
 #include "SimilarObj.h"
 
-#if USE_SSIM
+#if MATCH_METHOD == METHOD_SSIM
     //
-#else
+#elif MATCH_METHOD == METHOD_HOG
     #include "opencv2/objdetect.hpp"        //hog
+#elif MATCH_METHOD == METHOD_SIFT
+    #include "opencv2/features2d.hpp"
+#elif MATCH_METHOD == METHOD_PHASH
+    #include "opencv2/img_hash.hpp"
+    using namespace cv::img_hash;
 #endif
 
 #define LOG_TAG "SimObj"
@@ -19,7 +24,7 @@
 #define SIM_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define CLAMP(x, min, max) SIM_MAX(min, SIM_MIN(x, max))
 
-#include "opencv2/features2d.hpp"
+
 using namespace std;
 using namespace cv;
 
@@ -33,7 +38,7 @@ SimilarObj::~SimilarObj(void)
 
 }
 
-static cv::Scalar calc_image_ssim( const cv::Mat& i1, const cv::Mat& i2)
+static cv::Scalar calc_image_ssim(const cv::Mat& i1, const cv::Mat& i2)
 {
     const double C1 = 6.5025, C2 = 58.5225;
     /***************************** INITS **********************************/
@@ -200,6 +205,95 @@ void SimilarObj::update(cv::Mat &frame, const TrackingBox &tbox)
     generateHogImage(frame, tbox.box, mat_roi_);
 #elif MATCH_METHOD == METHOD_SIFT
     generateCropImage(frame, tbox.box, mat_roi_);
+#elif MATCH_METHOD == METHOD_PHASH
+    generateCropImage(frame, tbox.box, mat_roi_);
+#endif
+}
+
+float SimilarObj::debugCalcSift(cv::Mat &in1, cv::Mat &in2)
+{
+    float val = 0;
+#if MATCH_METHOD == METHOD_SIFT
+    const int numFeatures = 1000;
+    Ptr<SIFT> detector = SIFT::create(numFeatures);
+    vector<KeyPoint> keypoints, keypoints2;
+    detector->detect(in2, keypoints);
+    detector->detect(in1, keypoints2);
+    //
+    std::cout << "Keypoints:" << keypoints.size() << endl;
+    std::cout << "Keypoints2:" << keypoints2.size() << endl;
+
+    Mat dstSIFT, dstSIFT2;
+    Ptr<SiftDescriptorExtractor> descriptor = SiftDescriptorExtractor::create();
+    descriptor->compute(in2, keypoints, dstSIFT);
+    descriptor->compute(in1, keypoints2, dstSIFT2);
+    std::cout << dstSIFT.cols << endl;
+    std::cout << dstSIFT2.rows << endl;
+
+    BFMatcher matcher(NORM_L2);
+    vector<DMatch> matches;
+    matcher.match(dstSIFT, dstSIFT2, matches);
+
+    double max_dist = 0;
+    double min_dist = 10000;
+    for (int i = 1; i < dstSIFT.rows; ++i) {
+        double dist = matches[i].distance;
+        if (dist > max_dist) {
+            max_dist = dist;
+        }
+        if (dist < min_dist) {
+            min_dist = dist;
+        }
+    }
+    std::cout << "min_dist=" << min_dist << endl;
+    std::cout << "max_dist=" << max_dist << endl;
+    //
+    vector<DMatch> goodMatches;
+    for (int i = 0; i < matches.size(); ++i) {
+        double dist = matches[i].distance;
+        if (dist < 7 * min_dist) {
+            goodMatches.push_back(matches[i]);
+        }
+    }
+    std::cout << "goodMatches:" << goodMatches.size() << endl;
+
+    Mat result;
+    drawMatches(in2, keypoints, in1, keypoints2, goodMatches, result, Scalar(255, 255, 0), Scalar::all(-1));
+
+    stringstream ss;
+    ss << "Match id[" << tbox_.id << "]";
+    imshow(ss.str(), result);
+    val = matches.size();
+#endif
+    return val;
+}
+
+float SimilarObj::debugCalcHash(cv::Mat &in1, cv::Mat &in2)
+{
+#if MATCH_METHOD == METHOD_PHASH
+    //using T = AverageHash;
+    using T = PHash;
+    //using T = MarrHildrethHash;   //useless
+    //using T = RadialVarianceHash; //useless
+    //using T = BlockMeanHash;      //useless
+
+    //TickMeter tick;
+    Mat hashA, hashB;
+    Ptr<ImgHashBase> func;
+    func = T::create();
+    //tick.reset(); tick.start();
+    func->compute(in1, hashA);
+    //tick.stop();
+    ////std::cout << "compute1: " << tick.getTimeMilli() << " ms" << endl;
+    //tick.reset(); tick.start();
+    func->compute(in2, hashB);
+    //tick.stop();
+    //std::cout << "compute2: " << tick.getTimeMilli() << " ms" << endl;
+    float val = func->compare(hashA, hashB);
+    //std::cout << "compare: " << val << endl << endl;
+    return val;
+#else
+    return 0;
 #endif
 }
 
@@ -231,61 +325,17 @@ float SimilarObj::checkMatchScore(cv::Mat &frame, const RectBox &box)
         distance /= mat_roi_.rows;
         return distance;
     }
-#else
+#elif MATCH_METHOD == METHOD_SIFT
     if (mat_roi_.rows > 0) {
         cv::Mat in2;
         generateCropImage(frame, box, in2);
-        const int numFeatures = 1000;
-        Ptr<SIFT> detector = SIFT::create(numFeatures);
-        vector<KeyPoint> keypoints, keypoints2;
-        detector->detect(in2, keypoints);
-        detector->detect(mat_roi_, keypoints2);
-        //
-        std::cout << "Keypoints:" << keypoints.size() << endl;
-        std::cout << "Keypoints2:" << keypoints2.size() << endl;
-
-        Mat dstSIFT, dstSIFT2;
-        Ptr<SiftDescriptorExtractor> descriptor = SiftDescriptorExtractor::create();
-        descriptor->compute(in2, keypoints, dstSIFT);
-        descriptor->compute(mat_roi_, keypoints2, dstSIFT2);
-        std::cout << dstSIFT.cols << endl;
-        std::cout << dstSIFT2.rows << endl;
-
-        BFMatcher matcher(NORM_L2);
-        vector<DMatch> matches;
-        matcher.match(dstSIFT, dstSIFT2, matches);
-
-        double max_dist = 0;
-        double min_dist = 10000;
-        for (int i = 1; i < dstSIFT.rows; ++i) {
-            double dist = matches[i].distance;
-            if (dist > max_dist) {
-                max_dist = dist;
-            }
-            if (dist < min_dist) {
-                min_dist = dist;
-            }
-        }
-        std::cout << "min_dist=" << min_dist << endl;
-        std::cout << "max_dist=" << max_dist << endl;
-        //匹配结果筛选
-        vector<DMatch> goodMatches;
-        for (int i = 0; i < matches.size(); ++i) {
-            double dist = matches[i].distance;
-            if (dist < 7 * min_dist) {
-                goodMatches.push_back(matches[i]);
-            }
-        }
-        std::cout << "goodMatches:" << goodMatches.size() << endl;
-
-        Mat result;
-        drawMatches(in2, keypoints, mat_roi_, keypoints2, goodMatches, result, Scalar(255, 255, 0), Scalar::all(-1));
-
-        stringstream ss;
-        ss << "Match id[" << tbox_.id << "]";
-        imshow(ss.str(), result);
-
-        return matches.size();
+        return debugCalcSift(in2, mat_roi_);
+    }
+#elif MATCH_METHOD == METHOD_PHASH
+    if (mat_roi_.rows > 0) {
+        cv::Mat in2;
+        generateCropImage(frame, box, in2);
+        return debugCalcHash(in2, mat_roi_);
     }
 #endif
     return -1; //incase

@@ -92,9 +92,6 @@ file(GLOB SRC "${ROOT_DIR}/*.cpp"
               "${ROOT_DIR}/reader/*.cpp"
 )
 
-file(GLOB SIFT_SRC "${ROOT_DIR}/sift/*.cpp"
-)
-
 if(LINUX)
 	set(XLIB pthread)
 else()
@@ -109,5 +106,7 @@ set(ALL_LIB ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB}
 add_executable(yolo ${SRC})
 target_link_libraries(yolo ${ALL_LIB})
 
+
+# file(GLOB SIFT_SRC "${ROOT_DIR}/sift/*.cpp")
 # add_executable(sift ${SIFT_SRC})
 # target_link_libraries(sift ${ALL_LIB})

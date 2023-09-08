@@ -5,8 +5,9 @@
 #define METHOD_SSIM         (0)
 #define METHOD_HOG          (1)
 #define METHOD_SIFT         (2)
+#define METHOD_PHASH        (3)
 
-#define MATCH_METHOD        (2)
+#define MATCH_METHOD        (0)
 
 class SimilarObj
 {
@@ -27,6 +28,9 @@ private:
     void generateSsimImage(cv::Mat &in, const RectBox &box, cv::Mat &out);
     void generateHogImage(cv::Mat &in,  const RectBox &box, cv::Mat &out);
     void generateCropImage(cv::Mat &in, const RectBox &box, cv::Mat &out);
+
+    float debugCalcSift(cv::Mat &in1, cv::Mat &in2);
+    float debugCalcHash(cv::Mat &in1, cv::Mat &in2);
 
 private:
     uint8_t     inited_;

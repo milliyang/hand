@@ -129,7 +129,6 @@
 
         - 长时间没有识别时, ID reset
 
-
     4. 用户选择并且跟踪
         - 主目标丢失后，如何处理:
             - 什么条件判定为丢失
@@ -163,5 +162,10 @@
 ********
     - 构图选项: 特写,半身,全身
     - 手指识别: ON/OFF
+
+
+
+./yolo darknet2caffe/yolov2.cut.prototxt darknet2caffe/yolov2.caffemodel ~/Downloads/wudao/multi.p5.sexyback.mp4 
+./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel /dev/video0
 
 ```

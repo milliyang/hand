@@ -337,7 +337,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
             //LOGD("[updat_roi] id:[%d-%d] >>\n", tbox.id, it->second);
             for (auto &obj: objects_) {
                 if (obj.tbox_.id == it->second) {
-                    //debug_image_ssim(obj, frame, tbox);
+                    debug_image_similar(obj, frame, tbox);
 
                     //LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, uid);
                     obj.update(frame, tbox);
@@ -367,33 +367,33 @@ void SimilarTracker::trackByRect(const RectBox &rect)
 
 }
 
-void SimilarTracker::debug_image_ssim(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox)
+void SimilarTracker::debug_image_similar(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox)
 {
 
-#if 0
-    if (obj.tbox_.class_idx == SORT_CLS_FACE) {
+#if 1
+    //if (obj.tbox_.class_idx == SORT_CLS_FACE) {
         RectBox box = tbox.box;
-        LOGD("[DEBUG] SSIM:%0.2f\n", obj.checkMatchScore(frame, box));
+        LOGD("[DEBUG] value:%0.2f\n", obj.checkMatchScore(frame, box));
 
         box.x -= 10;
         box.x = MAX(0, box.x);
-        LOGD("[DEBUG] [-10, 0] SSIM:%0.2f\n", obj.checkMatchScore(frame, box));
+        LOGD("[DEBUG] [-10, 0] value:%0.2f\n", obj.checkMatchScore(frame, box));
         box.x -= 10;
         box.x = MAX(0, box.x);
-        LOGD("[DEBUG] [-20, 0] SSIM:%0.2f\n", obj.checkMatchScore(frame, box));
+        LOGD("[DEBUG] [-20, 0] value:%0.2f\n", obj.checkMatchScore(frame, box));
         box.x -= 10;
         box.x = MAX(0, box.x);
-        LOGD("[DEBUG] [-30, 0] SSIM:%0.2f\n", obj.checkMatchScore(frame, box));
+        LOGD("[DEBUG] [-30, 0] value:%0.2f\n", obj.checkMatchScore(frame, box));
         box.y -= 10;
         box.y = MAX(0, box.y);
-        LOGD("[DEBUG] [0, -10] SSIM:%0.2f\n", obj.checkMatchScore(frame, box));
+        LOGD("[DEBUG] [0, -10] value:%0.2f\n", obj.checkMatchScore(frame, box));
         box.y -= 10;
         box.y = MAX(0, box.y);
-        LOGD("[DEBUG] [0, -20] SSIM:%0.2f\n", obj.checkMatchScore(frame, box));
+        LOGD("[DEBUG] [0, -20] value:%0.2f\n", obj.checkMatchScore(frame, box));
         box.y -= 10;
         box.y = MAX(0, box.y);
-        LOGD("[DEBUG] [0, -30] SSIM:%0.2f\n", obj.checkMatchScore(frame, box));
-    }
+        LOGD("[DEBUG] [0, -30] value:%0.2f\n", obj.checkMatchScore(frame, box));
+    //}
 #endif
 
 }

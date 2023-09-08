@@ -24,7 +24,7 @@ private:
     void check_and_remove_object(void);
     void remove_sort_id(int sort_id);
 
-    void debug_image_ssim(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox);
+    void debug_image_similar(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox);
     void debug_check_box_valid(std::vector<TrackingBox> &tboxes);
 
 private:
