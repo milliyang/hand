@@ -101,15 +101,13 @@ else()
 	set(XLIB "")
 endif()
 
-
 set(CAFFELIB caffe caffeproto)
 
-# message(${SRC})
+set(ALL_LIB ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
+
+
 add_executable(yolo ${SRC})
+target_link_libraries(yolo ${ALL_LIB})
 
-#target_link_libraries(yolo ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES})
-target_link_libraries(yolo ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
-
-
-add_executable(sift ${SIFT_SRC})
-target_link_libraries(sift ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
+# add_executable(sift ${SIFT_SRC})
+# target_link_libraries(sift ${ALL_LIB})
