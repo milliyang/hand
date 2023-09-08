@@ -244,7 +244,9 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
             if (obj.tbox_.id == uid) {
                 //@Leo
                 //TODO:
-                // when sort failed, sort_id maybe wrong
+                // 1. when sort failed, sort_id maybe wrong
+                // 2. may need a lot a calculation to compare the same object when object are too much
+                // we need to track the main-tracking object Only
                 //
                 obj.updateBox(tbox);
                 v_obj_match[jj] = 1;

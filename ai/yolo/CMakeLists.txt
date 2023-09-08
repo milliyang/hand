@@ -40,14 +40,19 @@ else()
     #set(EXECUTABLE_OUTPUT_PATH "bin")
 
     #set(OpenCV_DIR "${ROOT_DIR}/3rd/opencv.install/share/OpenCV/")
-	set(OpenCV_DIR "/usr/local/share/OpenCV/")
-    set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")   #u20.04
+	#set(OpenCV_DIR "/usr/local/share/OpenCV/")
+    #set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")   #u20.04  opencv4.2.0
+
+    set(OpenCV_DIR "/home/leo/myhome/download/opencv_4x/opencv/install/lib/cmake/opencv4")   #4.5.5
 endif()
 
 find_package( OpenCV REQUIRED )
 #find_package( OpenCV 3.4.17 REQUIRED )
 include_directories(${OpenCV_INCLUDE_DIRS})
+message(STATUS "OpenCV_VERSION = ${OpenCV_VERSION}")
+message(STATUS "OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
+
 
 # If you only built the library
 list (APPEND CMAKE_PREFIX_PATH "${CAFFE_INSTALL}")
@@ -87,6 +92,9 @@ file(GLOB SRC "${ROOT_DIR}/*.cpp"
               "${ROOT_DIR}/reader/*.cpp"
 )
 
+file(GLOB SIFT_SRC "${ROOT_DIR}/sift/*.cpp"
+)
+
 if(LINUX)
 	set(XLIB pthread)
 else()
@@ -96,9 +104,12 @@ endif()
 
 set(CAFFELIB caffe caffeproto)
 
-
 # message(${SRC})
 add_executable(yolo ${SRC})
+
 #target_link_libraries(yolo ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES})
 target_link_libraries(yolo ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
 
+
+add_executable(sift ${SIFT_SRC})
+target_link_libraries(sift ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})

@@ -71,8 +71,10 @@ int imvt_cv_tracking_detect(cv::Mat &mat, cv::Rect2d &box)
         debug_dump_mat(mat);
 #endif
     } else {
-        ok = ctx.tracker->update(mat, box);
+        cv::Rect2i bbox; //fix for #4.5.5
+        bool ok = ctx.tracker->update(mat, bbox);
         if (ok) {
+            box = bbox;
             LOGD("bbox:%.2f %.2f %.2f %.2f\n", ctx.bbox.x, ctx.bbox.y, ctx.bbox.width, ctx.bbox.height);
         } else {
             LOGW("bbox:ng\n");

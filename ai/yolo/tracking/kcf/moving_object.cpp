@@ -584,7 +584,7 @@ bool MovingObject::runKcfTracking(cv::Mat &frame, cv::Rect2f &rect)
         return false;
     }
 
-    cv::Rect2d box = rect;
+    cv::Rect2i box; //fix for #4.5.5
     bool ok = kcf_->update(frame, box);
     if (ok) {
         rect = box;

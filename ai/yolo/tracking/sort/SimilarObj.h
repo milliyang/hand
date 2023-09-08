@@ -2,7 +2,11 @@
 
 #include "sort_def.h"
 
-#define USE_SSIM    (1)
+#define METHOD_SSIM         (0)
+#define METHOD_HOG          (1)
+#define METHOD_SIFT         (2)
+
+#define MATCH_METHOD        (2)
 
 class SimilarObj
 {
@@ -22,6 +26,7 @@ public:
 private:
     void generateSsimImage(cv::Mat &in, const RectBox &box, cv::Mat &out);
     void generateHogImage(cv::Mat &in,  const RectBox &box, cv::Mat &out);
+    void generateCropImage(cv::Mat &in, const RectBox &box, cv::Mat &out);
 
 private:
     uint8_t     inited_;
