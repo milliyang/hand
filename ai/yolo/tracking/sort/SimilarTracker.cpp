@@ -239,45 +239,11 @@ void SimilarTracker::remove_sort_id(int sort_id)
     }
 }
 
-void SimilarTracker::debug_check_box_valid(std::vector<TrackingBox> &tboxes)
-{
-    for (auto tbox:tboxes) {
-        if (tbox.box.x >= 0 &&
-            tbox.box.width >= 0 &&
-            tbox.box.y >= 0 &&
-            tbox.box.height >= 0 &&
-            (tbox.box.x + tbox.box.width) <= 416 &&
-            (tbox.box.y + tbox.box.height) <= 416) {
-            continue;
-        } else {
-            LOGE("cls:%d id:%d box:%0.2f %0.2f %0.2f %0.2f\n",
-                (int)tbox.class_idx, tbox.id,
-                tbox.box.x,tbox.box.y,tbox.box.width,tbox.box.height);
-        }
-    }
-}
-
 #define BOX_USED    (-1)
 
 std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<TrackingBox> &tboxes)
 {
-#if 0
-    //debug insert for testing
-    if (tboxes.size() > 0) {
-        TrackingBox bbb = tboxes[0];
-        for (int i = 0; i < 20; i++) {
-            bbb.id++;
-            bbb.class_idx = 0;
-            bbb.box.x += 2;
-            tboxes.push_back(bbb);
-        }
-        for (size_t j = 0; j < tboxes.size(); j++) {
-            tboxes[j].class_idx = 0;
-        }
-    }
-    assert(frame.rows == 416);
-    assert(frame.cols == 416);
-#endif
+    //debug_insert_20_box(tboxes);
 
     if (check_and_reinit(frame, tboxes)) {
         return getBoxes();
@@ -382,7 +348,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
                 continue; //not the same class
             }
             //TODO:
-            // Leo: only hand one object now, first found
+            // Leo: only handle one object now, first found
             //
             //  object0: [score, score, score]
             //  object1: [score, score, score]
@@ -472,4 +438,41 @@ void SimilarTracker::debug_image_similar(SimilarObj &obj, cv::Mat &frame, Tracki
     //}
 #endif
 
+}
+
+void SimilarTracker::debug_check_box_valid(std::vector<TrackingBox> &tboxes)
+{
+    for (auto tbox:tboxes) {
+        if (tbox.box.x >= 0 &&
+            tbox.box.width >= 0 &&
+            tbox.box.y >= 0 &&
+            tbox.box.height >= 0 &&
+            (tbox.box.x + tbox.box.width) <= 416 &&
+            (tbox.box.y + tbox.box.height) <= 416) {
+            continue;
+        } else {
+            LOGE("cls:%d id:%d box:%0.2f %0.2f %0.2f %0.2f\n",
+                (int)tbox.class_idx, tbox.id,
+                tbox.box.x,tbox.box.y,tbox.box.width,tbox.box.height);
+        }
+    }
+}
+
+void SimilarTracker::debug_insert_20_box(std::vector<TrackingBox> &tboxes)
+{
+    assert(frame.rows == 416);
+    assert(frame.cols == 416);
+    //debug insert for testing
+    if (tboxes.size() > 0) {
+        TrackingBox bbb = tboxes[0];
+        for (int i = 0; i < 20; i++) {
+            bbb.id++;
+            bbb.class_idx = 0;
+            bbb.box.x += 2;
+            tboxes.push_back(bbb);
+        }
+        for (size_t j = 0; j < tboxes.size(); j++) {
+            tboxes[j].class_idx = 0;
+        }
+    }
 }

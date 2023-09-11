@@ -28,6 +28,7 @@ private:
 
     void debug_image_similar(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox);
     void debug_check_box_valid(std::vector<TrackingBox> &tboxes);
+    void debug_insert_20_box(std::vector<TrackingBox> &tboxes);
 
 private:
     int         no_obj_no_box_counter_;
