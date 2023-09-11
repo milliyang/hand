@@ -347,8 +347,9 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
             if (max_score_idx < 0) {
                 continue; //not the same class
             }
-            //TODO:
-            // Leo: only handle one object now, first found
+            //TODO: @Leo
+            // - only handle first object found
+            // - use rect to find object match maybe better
             //
             //  object0: [score, score, score]
             //  object1: [score, score, score]
@@ -381,7 +382,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
                 if (obj.tbox_.id == it->second) {
                     //debug_image_similar(obj, frame, tbox);
 
-                    LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, obj.tbox_.id);
+                    //LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, obj.tbox_.id);
                     obj.update(frame, tbox);
                     break;
                 }
