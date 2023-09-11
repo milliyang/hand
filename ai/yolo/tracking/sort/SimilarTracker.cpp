@@ -29,7 +29,7 @@ static float GetSimpleDist(const RectBox &bb_a, const RectBox &bb_b)
     float b_y = bb_b.y + bb_b.height/2.0f;
 
     a_x -= b_x;
-    a_y -= a_y;
+    a_y -= b_y;
     return a_x*a_x + a_y*a_y;
 }
 
@@ -243,6 +243,8 @@ void SimilarTracker::remove_sort_id(int sort_id)
 
 std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<TrackingBox> &tboxes)
 {
+    //assert(frame.rows == 416);
+    //assert(frame.cols == 416);
     //debug_insert_20_box(tboxes);
 
     if (check_and_reinit(frame, tboxes)) {
@@ -461,8 +463,6 @@ void SimilarTracker::debug_check_box_valid(std::vector<TrackingBox> &tboxes)
 
 void SimilarTracker::debug_insert_20_box(std::vector<TrackingBox> &tboxes)
 {
-    assert(frame.rows == 416);
-    assert(frame.cols == 416);
     //debug insert for testing
     if (tboxes.size() > 0) {
         TrackingBox bbb = tboxes[0];
