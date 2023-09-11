@@ -38,5 +38,7 @@ private:
 
     std::vector<TrackingBox>    cur_tboxes_;
     std::vector<SimilarObj>     objects_;
-    uint8_t                     objects_cls_counter_[SORT_YOLO_CLASS_NUM];
+
+    uint8_t     last_obj_cls_counter_[SORT_YOLO_CLASS_NUM];
+    uint8_t     curr_obj_cls_counter_[SORT_YOLO_CLASS_NUM];
 };

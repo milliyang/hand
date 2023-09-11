@@ -39,7 +39,7 @@ SimilarTracker::SimilarTracker(void)
     main_trk_id_ = -1;
     no_obj_no_box_counter_ = 0;
 
-    memset(objects_cls_counter_, 0, sizeof(objects_cls_counter_));
+    memset(last_obj_cls_counter_, 0, sizeof(last_obj_cls_counter_));
 }
 
 SimilarTracker::~SimilarTracker(void)
@@ -289,6 +289,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
     }
 
     cur_frame_seq_ = tboxes[0].frame;
+    memset(curr_obj_cls_counter_, 0, sizeof(curr_obj_cls_counter_));
 
     //debug_check_box_valid(tboxes);
 
@@ -297,15 +298,13 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
 
     std::vector<int>     v_box_not_match;
     std::vector<uint8_t> v_obj_match(objects_.size(), 0);
-    uint8_t obj_cls_counter[SORT_YOLO_CLASS_NUM];
-    memset(obj_cls_counter, 0, sizeof(obj_cls_counter));
 
     //full match
     for (int i = 0; i < (int) tboxes.size(); i++) {
         auto &tbox = tboxes[i];
 
         if (tboxes[i].class_idx < SORT_YOLO_CLASS_NUM) {
-            obj_cls_counter[tboxes[i].class_idx]++;
+            curr_obj_cls_counter_[tboxes[i].class_idx]++;
         }
 
         int uid = -1;
@@ -364,8 +363,8 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
                 // quich match only apply on close area()
 
                 //quick match witn 1:1 match
-                if (obj_cls_counter[tbox.class_idx] == 1 &&
-                    objects_cls_counter_[tbox.class_idx] == 1) {
+                if (curr_obj_cls_counter_[tbox.class_idx] == 1 &&
+                    last_obj_cls_counter_[tbox.class_idx] == 1) {
                     max_score_idx = tbox_idx;
                     max_score = 1.0f;
                     box_not_match_idx = kk;
@@ -416,7 +415,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
                 if (obj.tbox_.id == it->second) {
                     //debug_image_similar(obj, frame, tbox);
 
-                    //LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, uid);
+                    LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, obj.tbox_.id);
                     obj.update(frame, tbox);
                     break;
                 }
@@ -424,9 +423,9 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
         }
     }
 
-    memset(objects_cls_counter_, 0, sizeof(objects_cls_counter_));
+    memset(last_obj_cls_counter_, 0, sizeof(last_obj_cls_counter_));
     for (const auto &obj : objects_) {
-        objects_cls_counter_[obj.tbox_.class_idx]++;
+        last_obj_cls_counter_[obj.tbox_.class_idx]++;
     }
 
     return getBoxes();
