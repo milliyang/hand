@@ -3,6 +3,8 @@
 #include "sort_def.h"
 #include "SimilarObj.h"
 
+#define SIM_TRK_ID_RESET_NUM            (30*30) //abount 30s
+
 class SimilarTracker
 {
 public:
@@ -28,6 +30,7 @@ private:
     void debug_check_box_valid(std::vector<TrackingBox> &tboxes);
 
 private:
+    int         no_obj_no_box_counter_;
     int         main_trk_id_;
     uint32_t    uuid_;
     int         cur_frame_seq_;

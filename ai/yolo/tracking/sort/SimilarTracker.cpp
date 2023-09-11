@@ -21,10 +21,23 @@ static float GetIOU(const RectBox &bb_test, const RectBox &bb_gt)
     return (float)(in / un);
 }
 
+static float GetSimpleDist(const RectBox &bb_a, const RectBox &bb_b)
+{
+    float a_x = bb_a.x + bb_a.width/2.0f;
+    float a_y = bb_a.y + bb_a.height/2.0f;
+    float b_x = bb_b.x + bb_b.width/2.0f;
+    float b_y = bb_b.y + bb_b.height/2.0f;
+
+    a_x -= b_x;
+    a_y -= a_y;
+    return a_x*a_x + a_y*a_y;
+}
+
 SimilarTracker::SimilarTracker(void)
 {
     uuid_ = 1;
     main_trk_id_ = -1;
+    no_obj_no_box_counter_ = 0;
 
     memset(objects_cls_counter_, 0, sizeof(objects_cls_counter_));
 }
@@ -48,6 +61,7 @@ void SimilarTracker::insert_new_object(cv::Mat &frame, TrackingBox &tbox)
 bool SimilarTracker::check_and_reinit(cv::Mat &frame, std::vector<TrackingBox> &tboxes)
 {
     if (objects_.size() > 0) {
+        no_obj_no_box_counter_ = 0;
         return false;
     }
 
@@ -56,6 +70,13 @@ bool SimilarTracker::check_and_reinit(cv::Mat &frame, std::vector<TrackingBox> &
         for (auto &tbox : tboxes) {
             cur_frame_seq_ = tbox.frame;
             insert_new_object(frame, tbox);
+        }
+    } else {
+        //not tracking object, not tracking box
+        no_obj_no_box_counter_++;
+
+        if (no_obj_no_box_counter_ >= SIM_TRK_ID_RESET_NUM) {
+            uuid_ = 0;  //reset uuid
         }
     }
     return true;
@@ -105,30 +126,42 @@ void SimilarTracker::find_safe_boxes(std::vector<int> &safe, std::vector<Trackin
         safe.push_back(0);
         return;
     }
-    std::vector<uint8_t> v_used(tboxes.size(), 0);
+    std::vector<uint8_t> v_not_safe(tboxes.size(), 0);
+    RectBox  box_a;
+    RectBox  box_b;
     for (int i = 0; i < (int)tboxes.size(); i++) {
-        if (v_used[i]) {
+        if (v_not_safe[i]) {
             continue;
         }
         for (int j = i+1; j < (int)tboxes.size(); j++) {
-            if (v_used[j]) {
+            if (v_not_safe[j]) {
                 continue;
             }
             if (tboxes[i].class_idx != tboxes[j].class_idx) {
                 continue;   //not the same class, always safe
             }
-
+#if 0
             //TODO:
-            // scale rect = rect*1.2; then GetIOU()
-            //
+            // - scale rect = rect*1.2; then GetIOU()
+            // - face maybe ok, human not need
+            #define RECT_SAFE_SCALE (1.1)
+            box_a = tboxes[i].box;
+            box_b = tboxes[j].box;
+            box_a.width  *= RECT_SAFE_SCALE;
+            box_a.height *= RECT_SAFE_SCALE;
+            box_b.width  *= RECT_SAFE_SCALE;
+            box_b.height *= RECT_SAFE_SCALE;
+            float iou = GetIOU(box_a, box_b);
+#else
             float iou = GetIOU(tboxes[i].box, tboxes[j].box);
+#endif
             if (iou >= 0.001f) {
-                v_used[i] = v_used[j] = 1;
+                v_not_safe[i] = v_not_safe[j] = 1;
             }
         }
     }
-    for (int i = 0; i < (int)v_used.size(); i++) {
-        if (v_used[i] == 0) {
+    for (int i = 0; i < (int)v_not_safe.size(); i++) {
+        if (v_not_safe[i] == 0) {
             safe.push_back(i);
         }
     }
@@ -138,11 +171,21 @@ void SimilarTracker::check_and_remove_object(void)
 {
     int removed = 0;
     auto it = objects_.begin();
+
+    TrackingBox main_tbox;
+    uint8_t     main_removed = 0;
+
     while (it != objects_.end()) {
         int age = cur_frame_seq_ - (*it).tbox_.frame;
         if (age >= SORT_OBJECT_AGE_MAX) {
             remove_sort_id((*it).sort_id_);
             LOGW("[remove_obj] id[%d-%d]\n", (*it).sort_id_, (*it).tbox_.id);
+
+            if ((*it).tbox_.id == main_trk_id_) {
+                main_removed = 1;
+                main_tbox = (*it).tbox_;
+            }
+
             it = objects_.erase(it);
             removed++;
         } else {
@@ -151,6 +194,40 @@ void SimilarTracker::check_and_remove_object(void)
     }
     if (removed) {
         //LOGD("object removed, num:%d\n", removed);
+    }
+
+    if (main_removed) {
+        //switch tracking target
+        // - find closed of the same class
+        // - do switch
+        std::vector<TrackingBox> tboxes;
+        for (const auto &obj : objects_) {
+            if (obj.tbox_.class_idx == main_tbox.class_idx) {
+                tboxes.push_back(obj.tbox_);
+            }
+        }
+        if (tboxes.size() <= 0) {
+            main_trk_id_ = -1;                //no match
+        } else if (tboxes.size() == 1) {
+            main_trk_id_ = tboxes[0].id;      //unique match
+        } else {
+            // find close
+            int min_dist = 1000000000;
+            int min_dist_obj_id = -1;
+            for (auto& tbox : tboxes) {
+                int dist = GetSimpleDist(tbox.box, main_tbox.box);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    min_dist_obj_id = tbox.id;
+                }
+            }
+            if (min_dist_obj_id >= 0) {
+                main_trk_id_ = min_dist_obj_id;
+            }
+        }
+        if (main_trk_id_ > 0) {
+            LOGD("switch tracking:[%d]\n", main_trk_id_);
+        }
     }
 }
 
@@ -337,7 +414,7 @@ std::vector<TrackingBox> SimilarTracker::Run(cv::Mat &frame, std::vector<Trackin
             //LOGD("[updat_roi] id:[%d-%d] >>\n", tbox.id, it->second);
             for (auto &obj: objects_) {
                 if (obj.tbox_.id == it->second) {
-                    debug_image_similar(obj, frame, tbox);
+                    //debug_image_similar(obj, frame, tbox);
 
                     //LOGD("[updat_roi] id:[%d-%d] done\n", tbox.id, uid);
                     obj.update(frame, tbox);
@@ -370,7 +447,7 @@ void SimilarTracker::trackByRect(const RectBox &rect)
 void SimilarTracker::debug_image_similar(SimilarObj &obj, cv::Mat &frame, TrackingBox &tbox)
 {
 
-#if 1
+#if 0
     //if (obj.tbox_.class_idx == SORT_CLS_FACE) {
         RectBox box = tbox.box;
         LOGD("[DEBUG] value:%0.2f\n", obj.checkMatchScore(frame, box));

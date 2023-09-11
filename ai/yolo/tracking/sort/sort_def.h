@@ -40,7 +40,6 @@ typedef struct TrackingBox {
 #define SORT_CLS_FACE  (1)
 #define SORT_CLS_HAND  (2)
 
-
 #define SORT_NUM                        (20)
 #define SORT_RESET_ID_FRAME_NUM         (100)
 
