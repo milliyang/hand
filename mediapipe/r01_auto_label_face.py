@@ -63,6 +63,19 @@ id_names = {
     YOLO_COW_ID      : "cow",
 }
 
+folder_to_id = {
+    'call'  : YOLO_HUMAN_HAND_CALL,
+    'fist'  : YOLO_HUMAN_HAND_FIST,
+    'four'  : YOLO_HUMAN_HAND_FOUR,
+    'like'  : YOLO_HUMAN_HAND_LIKE,
+    'ok'    : YOLO_HUMAN_HAND_OK,
+    'one'   : YOLO_HUMAN_HAND_ONE,
+    'palm'  : YOLO_HUMAN_HAND_FIVE,
+    'stop'  : YOLO_HUMAN_HAND_FIVE,
+    'peace' : YOLO_HUMAN_HAND_TWO,
+    'three' : YOLO_HUMAN_HAND_THREE,
+}
+
 linefont = cv2.FONT_HERSHEY_SIMPLEX
 
 def id_to_names(id):
@@ -100,69 +113,82 @@ def get_all_image_in_dir(dir_list =[], subsample=100000):
         break #quick debug
     return images
 
-def get_rect_from_landmarks(id, landmarks, alist:list, margin=0):
+def get_rect_from_landmarks(id, landmarks, alist:list, margin=0, min_point = 1, hotfix_y_max = 1.0):
     all_x = []
     all_y = []
-
+    num = 0
     for mark in alist:
         x = landmarks[mark].x
         y = landmarks[mark].y
         if (x >= 0) and (x <= 1.0) and (y >= 0) and (y <= 1.0):
-            all_x.append(x)
-            x0 = max(x - margin, 0.0)
-            x1 = min(x + margin, 1.0)
+            num+=1
+
+            x0 = min(x - margin, hotfix_y_max)
+            x1 = min(x + margin, hotfix_y_max)
+            x2 = min(x,          hotfix_y_max)
+            x0 = max(x0, 0.0)
             all_x.append(x0)
             all_x.append(x1)
+            all_x.append(x2)
 
-            all_y.append(y)
-            y0 = max(y - margin, 0.0)
-            y1 = min(y + margin, 1.0)
+            y0 = min(y - margin, hotfix_y_max)
+            y1 = min(y + margin, hotfix_y_max)
+            y2 = min(y,          hotfix_y_max)
+            y0 = max(y0, 0.0)
+            all_y.append(y0)
             all_y.append(y0)
             all_y.append(y1)
 
-    if len(all_x) > 0 and len(all_y) > 0:
-        core = (id, id_names[id], (min(all_x), min(all_y), max(all_x), max(all_y)))
-        return core
+    if len(all_x) > 0 and len(all_y) > 0 and num >= min_point:
+        #x,y,w,h
+        x = min(all_x)
+        y = min(all_y)
+        w = max(all_x)-x
+        h = max(all_y)-y
+        info = (id, id_names[id], 1.0, (x,y,w,h))
+        return info
     else:
         return None
 
-def body_info_from_landmark(landmarks):
+def body_info_from_landmark(landmarks, hotfix_y_max = 1.0):
     INDEX = mp_pose.PoseLandmark
-    margin_x = landmarks[INDEX.LEFT_EYE].x - landmarks[INDEX.RIGHT_EYE].x
-    margin_y = landmarks[INDEX.LEFT_EYE].y - landmarks[INDEX.RIGHT_EYE].y
-    head_margin = max(margin_x, margin_y)
+    #margin_x = landmarks[INDEX.LEFT_EYE].x - landmarks[INDEX.RIGHT_EYE].x
+    #margin_y = landmarks[INDEX.LEFT_EYE].y - landmarks[INDEX.RIGHT_EYE].y
+    #head_margin = max(margin_x, margin_y)
     #print(margin)
 
     foot_margin_x = landmarks[INDEX.LEFT_HEEL].x - landmarks[INDEX.LEFT_FOOT_INDEX].x
     foot_margin_y = landmarks[INDEX.LEFT_HEEL].y - landmarks[INDEX.LEFT_FOOT_INDEX].y
-    foot_margin = max(foot_margin_x, foot_margin_y) / 2.0
+    foot_margin = max(foot_margin_x, foot_margin_y) / 1.5
 
-    head_face_list   = [INDEX.NOSE, INDEX.LEFT_EYE, INDEX.RIGHT_EYE, INDEX.LEFT_EAR, INDEX.RIGHT_EAR, INDEX.MOUTH_LEFT, INDEX.MOUTH_RIGHT]
-    body_marks_list  = [INDEX.LEFT_SHOULDER, INDEX.RIGHT_SHOULDER, INDEX.LEFT_HIP, INDEX.RIGHT_HIP, INDEX.LEFT_KNEE, INDEX.RIGHT_KNEE]
+    #head_face_list   = [INDEX.NOSE, INDEX.LEFT_EYE, INDEX.RIGHT_EYE, INDEX.LEFT_EAR, INDEX.RIGHT_EAR, INDEX.MOUTH_LEFT, INDEX.MOUTH_RIGHT]
+    #body_marks_list  = [INDEX.LEFT_SHOULDER, INDEX.RIGHT_SHOULDER, INDEX.LEFT_HIP, INDEX.RIGHT_HIP, INDEX.LEFT_KNEE, INDEX.RIGHT_KNEE]
+    body_marks_list  = [INDEX.LEFT_SHOULDER, INDEX.RIGHT_SHOULDER, INDEX.LEFT_HIP, INDEX.RIGHT_HIP]
     #
-    hand_left_list   = [INDEX.LEFT_WRIST, INDEX.LEFT_PINKY, INDEX.LEFT_INDEX, INDEX.LEFT_THUMB]
-    hand_right_list  = [INDEX.RIGHT_WRIST, INDEX.RIGHT_PINKY, INDEX.RIGHT_INDEX, INDEX.RIGHT_THUMB]
-    foot_left_list   = [INDEX.LEFT_ANKLE, INDEX.LEFT_HEEL, INDEX.LEFT_FOOT_INDEX]
-    foot_right_list  = [INDEX.RIGHT_ANKLE, INDEX.RIGHT_HEEL, INDEX.RIGHT_FOOT_INDEX]
-
-    head        = get_rect_from_landmarks(YOLO_HUMAN_FACE_ID, landmarks, head_face_list, head_margin)
-    body        = get_rect_from_landmarks(YOLO_HUMAN_BODY_ID, landmarks, body_marks_list, 0)
-    hand_left   = get_rect_from_landmarks(YOLO_HUMAN_HAND_ID, landmarks, hand_left_list,  0)
-    hand_right  = get_rect_from_landmarks(YOLO_HUMAN_HAND_ID, landmarks, hand_right_list, 0)
-    foot_left   = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, foot_left_list,  foot_margin)
-    foot_right  = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, foot_right_list, foot_margin)
-
+    #hand_left_list   = [INDEX.LEFT_WRIST, INDEX.LEFT_PINKY, INDEX.LEFT_INDEX, INDEX.LEFT_THUMB]
+    #hand_right_list  = [INDEX.RIGHT_WRIST, INDEX.RIGHT_PINKY, INDEX.RIGHT_INDEX, INDEX.RIGHT_THUMB]
+    #foot_left_list   = [INDEX.LEFT_ANKLE, INDEX.LEFT_HEEL, INDEX.LEFT_FOOT_INDEX]
+    #foot_right_list  = [INDEX.RIGHT_ANKLE, INDEX.RIGHT_HEEL, INDEX.RIGHT_FOOT_INDEX]
+    #
+    leg_list  = [INDEX.RIGHT_ANKLE, INDEX.RIGHT_HEEL, INDEX.RIGHT_FOOT_INDEX, INDEX.RIGHT_KNEE,
+                 INDEX.LEFT_ANKLE,  INDEX.LEFT_HEEL,  INDEX.LEFT_FOOT_INDEX,  INDEX.LEFT_KNEE]
+    #head        = get_rect_from_landmarks(YOLO_HUMAN_FACE_ID, landmarks, head_face_list, head_margin)
+    body        = get_rect_from_landmarks(YOLO_HUMAN_BODY_ID, landmarks, body_marks_list, 0, 4, hotfix_y_max)
+    #hand_left   = get_rect_from_landmarks(YOLO_HUMAN_HAND_ID, landmarks, hand_left_list,  0)
+    #hand_right  = get_rect_from_landmarks(YOLO_HUMAN_HAND_ID, landmarks, hand_right_list, 0)
+    #foot_left   = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, foot_left_list,  foot_margin)
+    #foot_right  = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, foot_right_list, foot_margin)
+    #
+    leg  = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, leg_list, foot_margin, 5, hotfix_y_max)
     rects = []
-    #if head: rects.append(head)        #ignore head
-
+    #if head: rects.append(head)                #ignore head
+    #if hand_left: rects.append(hand_left)
+    #if hand_right: rects.append(hand_right)
+    #if foot_left: rects.append(foot_left)
+    #if foot_right: rects.append(foot_right)
     if body: rects.append(body)
-    if hand_left: rects.append(hand_left)
-    if hand_right: rects.append(hand_right)
-    if foot_left: rects.append(foot_left)
-    if foot_right: rects.append(foot_right)
-
-    print(rects)
-
+    if leg: rects.append(leg)
+    #print(rects)
     return rects
 
 def get_object_detector(thresh=0.40):
@@ -173,6 +199,33 @@ def get_object_detector(thresh=0.40):
     options = vision.ObjectDetectorOptions(base_options=base_options, score_threshold=thresh)
     detector = vision.ObjectDetector.create_from_options(options)
     return detector
+
+def calc_rect_distance(rect1, rect2):
+    ''' d^2 = x^2 + y^2 '''
+    c1_x = rect1[0] + rect1[2] / 2.0
+    c1_y = rect1[1] + rect1[3] / 2.0
+
+    c2_x = rect2[0] + rect2[2] / 2.0
+    c2_y = rect2[1] + rect2[3] / 2.0
+
+    return pow(c1_x-c2_x, 2) + pow(c1_y-c2_y, 2)
+
+
+def draw_info_on_image(image, width, height, info:list, cc=(250, 250, 0), thinkness=1):
+    _, yolo_name, prob, rect_xywh = info
+    a_xywh = (rect_xywh[0]*width, rect_xywh[1]*height, rect_xywh[2]*width, rect_xywh[3]*height)
+    a_xywh = int(a_xywh[0]), int(a_xywh[1]), int(a_xywh[2]), int(a_xywh[3])
+    text = f'{yolo_name}:{prob:.2f}'
+    #
+    cv2.rectangle(image, a_xywh, cc, thinkness)
+    cv2.putText(image, text, (a_xywh[0]+10, a_xywh[1]-10), linefont, 0.5, cc, thinkness)
+
+def info_to_yolo_string(info:list):
+    yolo_id_idx, _, _, xywh = info
+    #output yolo bbox fmt:  x,y,w,h -> cx,xy,w,h
+    yolo_cxcywh = (xywh[0]+xywh[2]/2.0, xywh[1]+xywh[3]/2.0, xywh[2], xywh[3])
+    yolo_string = f"{yolo_id_idx} {yolo_cxcywh[0]} {yolo_cxcywh[1]} {yolo_cxcywh[2]} {yolo_cxcywh[3]} \n"
+    return yolo_string
 
 def auto_label_face_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
@@ -217,6 +270,12 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
             faces_label = []
             bodys_label = []
             person_label = []
+            hand_gesture_label = []
+
+            hotfix_one_person_y_max = 1.0
+
+            face_box   = None #[x,y,w,h], 0~1.0
+            person_box = None #[x,y,w,h], 0~1.0
 
             if config["person_detect"]:
                 #print(dir(mp.Image))
@@ -224,30 +283,27 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 #detection_result = object_detection.detect(imageL)
                 rgb_frame = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
                 detection_result = object_detection.detect(rgb_frame)
+                num = 0
+                y_max = 1.0
                 for detection in detection_result.detections:
                     category = detection.categories[0]
                     category_name = category.category_name
                     if category_name != 'person':
                         continue
-
                     pson_cc = (250, 100, 0)
-
                     # Draw bounding_box
-                    bbox = detection.bounding_box
-                    pt_start = bbox.origin_x, bbox.origin_y
-                    pt_end = bbox.origin_x + bbox.width, bbox.origin_y + bbox.height
-                    cv2.rectangle(image, pt_start, pt_end, pson_cc, 2)
+                    bbox = detection.bounding_box           #fuck: 0~width
+                    person_box = (bbox.origin_x/float(width), bbox.origin_y/float(height), bbox.width/float(width), bbox.height/float(height))
+                    y_max = person_box[1] + person_box[3]
+                    prob = round(category.score, 2)
+                    info = [YOLO_HUMAN_HUMAN_ID, id_to_names(YOLO_HUMAN_HUMAN_ID), prob, person_box]
+                    if config["show_image"]:
+                        draw_info_on_image(image, width, height, info, pson_cc, 1)
+                    person_label.append(info_to_yolo_string(info))
+                    num+=1
 
-                    # Draw label and score
-                    probability = round(category.score, 2)
-                    text_info = category_name + ' (' + str(probability) + ')'
-                    pt_text_location = (bbox.origin_x, max(bbox.origin_y-10, 0))
-                    cv2.putText(image, text_info, pt_text_location, linefont, 0.5, pson_cc, 1)
-
-                    #output yolo bbox fmt:  class,cx,xy,w,h
-                    pson_cxcywh = (bbox.origin_x + bbox.width/2.0, bbox.origin_y + bbox.height/2.0, bbox.width, bbox.height)
-                    pson_info = f"{YOLO_HUMAN_HUMAN_ID} {pson_cxcywh[0]} {pson_cxcywh[1]} {pson_cxcywh[2]} {pson_cxcywh[3]} \n"
-                    person_label.append(pson_info)
+                if num == 1:
+                    hotfix_one_person_y_max = y_max
 
             if config["pose_detect"]:
                 pose_result = pose_detection.process(image_rgb)
@@ -261,68 +317,45 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 if pose_result.pose_landmarks :
                     #https://blog.csdn.net/weixin_43229348/article/details/120541448
                     #https://developers.google.cn/android/reference/com/google/mlkit/vision/pose/PoseLandmark
-                    #eye = (pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_EYE].x * width,
-                    #       pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_EYE].y * height)
-                    #shoulder = (pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].x * width,
-                    #           pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].y * height)
-                    #hip = (pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_HIP].x * width,
-                    #       pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_HIP].y * height)
-                    #knee = (pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_KNEE].x * width,
-                    #        pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_KNEE].y * height)
-                    #foot = (pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].x * width,
-                    #        pose_result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y * height)
-                    #pose_cc = (250, 0, 0)
-                    #cv2.putText( image, f'hip',  (int(hip[0]), int(hip[1])), linefont, 0.5, pose_cc, 1)
-                    #cv2.putText( image, f'shoulder',  (int(shoulder[0]), int(shoulder[1])), linefont, 0.5, pose_cc, 1)
-                    #cv2.putText( image, f'eye',  (int(eye[0]), int(eye[1])), linefont, 0.5, pose_cc, 1)
-                    #cv2.putText( image, f'knee', (int(knee[0]), int(knee[1])), linefont, 0.5, pose_cc, 1)
-                    #cv2.putText( image, f'foot', (int(foot[0]), int(foot[1])), linefont, 0.5, pose_cc, 1)
-                    ##print(f"foot:{foot} frame.shape:{frame.shape}")
-
-                    body_info = body_info_from_landmark(pose_result.pose_landmarks.landmark)
-                    for a_rect in body_info:
-                        yolo_id_idx, yolo_name, a_rect = a_rect
-                        #print("body_rect:", body_rect)
-                        #
-                        a_xywh = (a_rect[0]*width, a_rect[1]*height, (a_rect[2]-a_rect[0])*width, (a_rect[3]-a_rect[1])*height)
-                        a_xywh = int(a_xywh[0]), int(a_xywh[1]), int(a_xywh[2]), int(a_xywh[3])
-                        body_cc = (250, 250, 0)
-                        cv2.rectangle(image, a_xywh, body_cc, 1)
-                        cv2.putText( image, yolo_name, (a_xywh[0]+10, a_xywh[1]-10), linefont, 0.5, body_cc, 2)
-
-                        #output yolo bbox fmt:  class,cx,xy,w,h
-                        yolo_cxcywh = ((a_rect[0]+a_rect[2])/2.0, (a_rect[1]+a_rect[3])/2.0, a_rect[2]-a_rect[0], a_rect[3]-a_rect[1])
-                        yolo_info = f"{yolo_id_idx} {yolo_cxcywh[0]} {yolo_cxcywh[1]} {yolo_cxcywh[2]} {yolo_cxcywh[3]} \n"
-                        bodys_label.append(yolo_info)
+                    body_info = body_info_from_landmark(pose_result.pose_landmarks.landmark, hotfix_one_person_y_max)
+                    body_cc = (250, 250, 0)
+                    for a_info in body_info:
+                        if config["show_image"]:
+                            draw_info_on_image(image, width, height, a_info, body_cc, 1)
+                        bodys_label.append(info_to_yolo_string(a_info))
 
             if config['face_detect']:
+                face_cc = (0, 0, 250)
                 if (face_results.detections):
                     for _, detection in enumerate(face_results.detections):
                         # mpDraw.draw_detection(image, detection)   #built-in function
                         # The box around the face
                         box = detection.location_data.relative_bounding_box
+                        face_box = [box.xmin, box.ymin, box.width, box.height]
 
+                        info = [YOLO_HUMAN_FACE_ID, id_to_names(YOLO_HUMAN_FACE_ID), detection.score[0], face_box]
                         if config["show_image"]:
-                            face_box = int(box.xmin * width), int(box.ymin * height), int(box.width * width), int(box.height * height)
-                            face_cc = (0, 0, 250)
-                            cv2.rectangle(image, face_box, face_cc, 1)
-                            cv2.putText( image, f'face:{detection.score[0]:.2f}', (face_box[0]+40, face_box[1] - 20), linefont, 0.5, face_cc, 1 )
-
-                        #output yolo bbox fmt:  class,cx,xy,w,h
-                        face_info = f"{YOLO_HUMAN_FACE_ID} {box.xmin+box.width/2.0} {box.ymin+box.height/2.0} {box.width} {box.height}\n"
-                        faces_label.append(face_info)
+                            draw_info_on_image(image, width, height, info, face_cc, 1)
+                        faces_label.append(info_to_yolo_string(info))
 
             #print(imagef)
-            #image: /home/leo/myhome/hagrid/download/subsample/train
-            #label: /home/leo/myhome/hagrid/download/subsample/train_labels
+            #image: /home/leo/myhome/hagrid/download/subsample/train/xxx/                   //xxx - guesture
+            #label: /home/leo/myhome/hagrid/download/subsample/train_labels/xxx/
             labelfile = imagef.replace("train", "train_labels").replace(".jpg", ".txt")
             ff = open(labelfile)
             strings = ff.readlines()
             ff.close()
             if config["show_image"] and config['draw_labels_in_txt_file']:
+                # Leo:
+                #  1. convert hand -> to number and hand
+                #  2. if two hand found, the hand closer to face use number (because we check all the sample image)
+                hands_box = []
+                hand_gesture_box = None
+                txtfile_cc = (0, 255, 120)
+
                 for yolo_fmt in strings:
                     items = yolo_fmt.strip().split()
-                    object_id  = items[0]
+                    yolo_id  = int(items[0])
                     #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
 
                     #cxcywh:
@@ -331,11 +364,39 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     box_ymin   = float(items[2]) - float(items[4]) / 2.0
                     box_width  = float(items[3])
                     box_height = float(items[4])
-                    abox = int(box_xmin * width), int(box_ymin * height), int(box_width * width), int(box_height * height)
+                    #
+                    a_box = [box_xmin, box_ymin, box_width, box_height]
+                    info = [yolo_id, id_to_names(yolo_id), 1.0, a_box]
+                    draw_info_on_image(image, width, height, info, txtfile_cc, 1)
 
-                    names = id_to_names(object_id)
-                    cv2.rectangle(image, abox, (0, 255, 120), 1)
-                    cv2.putText(image, names, (abox[0], abox[1]-8), linefont, 0.5, (0, 255, 120), 1)
+                    if yolo_id == YOLO_HUMAN_HAND_ID:
+                        hands_box.append(a_box)
+
+                #
+                if len(hands_box) > 0:
+                    hand_gesture_box = hands_box[0]
+                    if face_box != None:
+                        min_dist = 1080*1080*2
+                        for rect in hands_box:
+                            dist = calc_rect_distance(face_box, hand_gesture_box)
+                            if dist < min_dist:
+                                min_dist = dist
+                                hand_gesture_box = rect
+
+                    # Generate Gesture
+                    #  folder -> gesture
+                    #    N:\hand_fullset\train\call\xxxx.jpg  -> 'call'  -> YOLO_HUMAN_HAND_CALL
+                    #    N:\hand_fullset\train\three\xxxx.jpg -> 'three' -> YOLO_HUMAN_HAND_THREE
+                    pathname = os.path.dirname(imagef)
+                    basename = os.path.basename(pathname)
+                    #print(imagef, pathname, basename)
+
+                    if basename in folder_to_id.keys():
+                        yolo_id = folder_to_id[basename]
+                        info = [yolo_id, id_to_names(yolo_id), 1.0, hand_gesture_box]
+                        if config["show_image"]:
+                            draw_info_on_image(image, width, height, info, txtfile_cc, 2)
+                        hand_gesture_label.append(info_to_yolo_string(info))
 
             if config["auto_label"]:
                 new_labelfile = labelfile.replace(".txt", "_mp_hand.txt")
@@ -347,6 +408,8 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 for each in bodys_label:
                     file.write(each)
                 for each in person_label:
+                    file.write(each)
+                for each in hand_gesture_label:
                     file.write(each)
                 file.close()
                 print(new_labelfile)
@@ -374,11 +437,11 @@ if __name__ == '__main__':
         "face_detect"               : True,
         "face_detect_thresh"        : 0.2,
         "pose_detect"               : True,
-        "pose_detect_thresh"        : 0.1,
+        "pose_detect_thresh"        : 0.2,
         "person_detect"             : True,
         "person_detect_thresh"      : 0.30,
         "auto_label"                : True,     #   xxxx.jpg -> xxxx.auto_hand.txt
-        "draw_labels_in_txt_file"   : True,     #   draw label(id,x,y,w,h) from txtfile
+        "draw_labels_in_txt_file"   : False,     #   draw label(id,x,y,w,h) from txtfile
     }
 
     DEBUG = 1
@@ -405,14 +468,14 @@ if __name__ == '__main__':
             "show_image_wait"           : 1.0,
             "dirs"                      : image_dir,
             "dirs_subsample_max"        : 1000,
-            "face_detect"               : False,
+            "face_detect"               : True,
             "face_detect_thresh"        : 0.2,
             "pose_detect"               : True,
             "pose_detect_thresh"        : 0.2,
             "person_detect"             : True,
             "person_detect_thresh"      : 0.30,
-            "auto_label"                : False,
-            "draw_labels_in_txt_file"   : False,     #   draw label(id,x,y,w,h) from txtfile
+            "auto_label"                : True,
+            "draw_labels_in_txt_file"   : True,     #   draw label(id,x,y,w,h) from txtfile
         }
     images = get_all_image_in_dir(config["dirs"], config["dirs_subsample_max"])
     auto_label_face_for_yolo(images, config)
