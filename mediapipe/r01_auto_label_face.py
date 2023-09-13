@@ -64,16 +64,18 @@ id_names = {
 }
 
 folder_to_id = {
-    'call'  : YOLO_HUMAN_HAND_CALL,
-    'fist'  : YOLO_HUMAN_HAND_FIST,
-    'four'  : YOLO_HUMAN_HAND_FOUR,
-    'like'  : YOLO_HUMAN_HAND_LIKE,
-    'ok'    : YOLO_HUMAN_HAND_OK,
-    'one'   : YOLO_HUMAN_HAND_ONE,
-    'palm'  : YOLO_HUMAN_HAND_FIVE,
-    'stop'  : YOLO_HUMAN_HAND_FIVE,
-    'peace' : YOLO_HUMAN_HAND_TWO,
-    'three' : YOLO_HUMAN_HAND_THREE,
+    'call'          : YOLO_HUMAN_HAND_CALL,
+    'fist'          : YOLO_HUMAN_HAND_FIST,
+    'four'          : YOLO_HUMAN_HAND_FOUR,
+    'like'          : YOLO_HUMAN_HAND_LIKE,
+    'ok'            : YOLO_HUMAN_HAND_OK,
+    'one'           : YOLO_HUMAN_HAND_ONE,
+    'palm'          : YOLO_HUMAN_HAND_FIVE,
+    'stop'          : YOLO_HUMAN_HAND_FIVE,
+    'stop_inverted' : YOLO_HUMAN_HAND_FIVE,
+    'peace'         : YOLO_HUMAN_HAND_TWO,
+    'peace_inverted': YOLO_HUMAN_HAND_TWO,
+    'three'         : YOLO_HUMAN_HAND_THREE,
 }
 
 linefont = cv2.FONT_HERSHEY_SIMPLEX
@@ -276,6 +278,7 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
 
             face_box   = None #[x,y,w,h], 0~1.0
             person_box = None #[x,y,w,h], 0~1.0
+            person_num = 0
 
             if config["person_detect"]:
                 #print(dir(mp.Image))
@@ -283,7 +286,6 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 #detection_result = object_detection.detect(imageL)
                 rgb_frame = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
                 detection_result = object_detection.detect(rgb_frame)
-                num = 0
                 y_max = 1.0
                 for detection in detection_result.detections:
                     category = detection.categories[0]
@@ -300,9 +302,9 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     if config["show_image"]:
                         draw_info_on_image(image, width, height, info, pson_cc, 1)
                     person_label.append(info_to_yolo_string(info))
-                    num+=1
+                    person_num+=1
 
-                if num == 1:
+                if person_num == 1:
                     hotfix_one_person_y_max = y_max
 
             if config["pose_detect"]:
@@ -338,14 +340,16 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                             draw_info_on_image(image, width, height, info, face_cc, 1)
                         faces_label.append(info_to_yolo_string(info))
 
+            hagrid_labels = []
             #print(imagef)
             #image: /home/leo/myhome/hagrid/download/subsample/train/xxx/                   //xxx - guesture
             #label: /home/leo/myhome/hagrid/download/subsample/train_labels/xxx/
             labelfile = imagef.replace("train", "train_labels").replace(".jpg", ".txt")
-            ff = open(labelfile)
-            strings = ff.readlines()
-            ff.close()
-            if config["show_image"] and config['draw_labels_in_txt_file']:
+            if config['hagrid_parse_labels']:
+                ff = open(labelfile)
+                hagrid_labels = ff.readlines()
+                ff.close()
+
                 # Leo:
                 #  1. convert hand -> to number and hand
                 #  2. if two hand found, the hand closer to face use number (because we check all the sample image)
@@ -353,7 +357,7 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 hand_gesture_box = None
                 txtfile_cc = (0, 255, 120)
 
-                for yolo_fmt in strings:
+                for yolo_fmt in hagrid_labels:
                     items = yolo_fmt.strip().split()
                     yolo_id  = int(items[0])
                     #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
@@ -376,12 +380,11 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 if len(hands_box) > 0:
                     hand_gesture_box = hands_box[0]
                     if face_box != None:
-                        min_dist = 1080*1080*2
-                        for rect in hands_box:
-                            dist = calc_rect_distance(face_box, hand_gesture_box)
-                            if dist < min_dist:
-                                min_dist = dist
-                                hand_gesture_box = rect
+                        min_y = hand_gesture_box[1]
+                        for abox in hands_box:
+                            if abox[1] < min_y:
+                                min_y = abox[1]
+                                hand_gesture_box = abox
 
                     # Generate Gesture
                     #  folder -> gesture
@@ -399,20 +402,23 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                         hand_gesture_label.append(info_to_yolo_string(info))
 
             if config["auto_label"]:
-                new_labelfile = labelfile.replace(".txt", "_mp_hand.txt")
-                file = open(new_labelfile, "w")
-                for each in strings:
-                    file.write(each)
-                for each in faces_label:
-                    file.write(each)
-                for each in bodys_label:
-                    file.write(each)
-                for each in person_label:
-                    file.write(each)
-                for each in hand_gesture_label:
-                    file.write(each)
-                file.close()
-                print(new_labelfile)
+                if config['hagrid_parse_labels'] and person_num <= 0:
+                    print(new_labelfile, "[skip][hagrid, no human]")
+                else:
+                    new_labelfile = labelfile.replace(".txt", "_mp_hand.txt")
+                    file = open(new_labelfile, "w")
+                    for each in hagrid_labels:
+                        file.write(each)
+                    for each in faces_label:
+                        file.write(each)
+                    for each in bodys_label:
+                        file.write(each)
+                    for each in person_label:
+                        file.write(each)
+                    for each in hand_gesture_label:
+                        file.write(each)
+                    file.close()
+                    print(new_labelfile)
 
             if config["show_image"]:
                 cv2.imshow('Face detection', image)
@@ -433,18 +439,19 @@ if __name__ == '__main__':
         "show_image"                : False,
         "show_image_wait"           : 0,
         "dirs"                      : image_dir,
-        "dirs_subsample_max"        : 1000,
+        "dirs_subsample_max"        : 2000,
         "face_detect"               : True,
         "face_detect_thresh"        : 0.2,
         "pose_detect"               : True,
         "pose_detect_thresh"        : 0.2,
         "person_detect"             : True,
         "person_detect_thresh"      : 0.30,
-        "auto_label"                : True,     #   xxxx.jpg -> xxxx.auto_hand.txt
-        "draw_labels_in_txt_file"   : False,     #   draw label(id,x,y,w,h) from txtfile
+        "auto_label"                : True,     #  xxxx.jpg -> xxxx._mp_hand.txt
+        "hagrid_parse_labels"       : True,     # hagrid read hand label data
+        "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
     }
 
-    DEBUG = 1
+    DEBUG = 55555555
     if DEBUG == 0:
         #
         config = {
@@ -459,7 +466,8 @@ if __name__ == '__main__':
             "person_detect"             : True,
             "person_detect_thresh"      : 0.30,
             "auto_label"                : False,
-            "draw_labels_in_txt_file"   : True,     #   draw label(id,x,y,w,h) from txtfile
+            "hagrid_parse_labels"       : True,     # hagrid read hand label data
+            "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
         }
     elif DEBUG == 1:
         # show label data
@@ -467,7 +475,7 @@ if __name__ == '__main__':
             "show_image"                : True,
             "show_image_wait"           : 1.0,
             "dirs"                      : image_dir,
-            "dirs_subsample_max"        : 1000,
+            "dirs_subsample_max"        : 5,
             "face_detect"               : True,
             "face_detect_thresh"        : 0.2,
             "pose_detect"               : True,
@@ -475,7 +483,8 @@ if __name__ == '__main__':
             "person_detect"             : True,
             "person_detect_thresh"      : 0.30,
             "auto_label"                : True,
-            "draw_labels_in_txt_file"   : True,     #   draw label(id,x,y,w,h) from txtfile
+            "hagrid_parse_labels"       : True,     # hagrid read hand label data
+            "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
         }
     images = get_all_image_in_dir(config["dirs"], config["dirs_subsample_max"])
     auto_label_face_for_yolo(images, config)

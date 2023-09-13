@@ -40,7 +40,6 @@ if __name__ == '__main__':
     #/home/leo/myhome/hagrid/download/subsample/train/call/577c276d-f78a-45a8-b31d-2d4e59d31a89.txt
     #/home/leo/myhome/hagrid/download/subsample/train/call/577c276d-f78a-45a8-b31d-2d4e59d31a89.jpg
 
-
     for each in all_files:
         target = each.replace("train_labels", "train")
         copy_file(each, target)
