@@ -26,7 +26,7 @@ def get_all_files_in_dir(dir_list =[]):
 def remove_all_file_with_pattern(path, filenames:list, pattern = "mp_hand"):
     remove_files = []
     for each in filenames:
-        if "mp_hand" in each:
+        if pattern in each:
             remove_files.append(each)
 
     if len(remove_files) > 0:
@@ -60,15 +60,10 @@ def rename_mp_hand_files_to_label_files(path, filenames:list):
     print(f"remove_files:{len(remove_files)}")
 
 if __name__ == '__main__':
-    #F:\hagrid\download\subsample\subsample\train_labels\call\5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb_mp_hand.txt
-    # ->
-    #F:\hagrid\download\subsample\subsample\train_labels\call\5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb.txt
-
-    #path = "/home/leo/myhome/hagrid/download/subsample/train_labels"
     path = "/home/leo/hand_fullset/train_labels"
 
     all_files = get_all_files_in_dir([path])
 
     remove_all_file_with_pattern(path, all_files, pattern="mp_hand")
-
+    #remove_all_file_with_pattern(path, all_files, pattern="txt")
     #rename_mp_hand_files_to_label_files(path, all_files)

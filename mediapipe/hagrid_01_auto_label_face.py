@@ -11,7 +11,7 @@ mp_pose = mp.solutions.pose
 EXIT_KEY = 'q'
 
 file_ext = ['jpg', 'jpeg']
-YOLO_IMAGE_SIZE = (410,410)
+YOLO_IMAGE_SIZE = (416,416)
 
 YOLO_HUMAN_HUMAN_ID   = 0
 YOLO_HUMAN_FACE_ID    = 1
@@ -35,7 +35,6 @@ YOLO_BIRD_ID     = 16
 YOLO_HORSE_ID    = 17
 YOLO_SHEEP_ID    = 18
 YOLO_CAR_ID      = 19
-YOLO_COW_ID      = 20
 
 id_names = {
     YOLO_HUMAN_HUMAN_ID   : "human",
@@ -60,7 +59,6 @@ id_names = {
     YOLO_HORSE_ID    : "horse",
     YOLO_SHEEP_ID    : "sheep",
     YOLO_CAR_ID      : "car",
-    YOLO_COW_ID      : "cow",
 }
 
 folder_to_id = {
@@ -439,7 +437,7 @@ if __name__ == '__main__':
         "show_image"                : False,
         "show_image_wait"           : 0,
         "dirs"                      : image_dir,
-        "dirs_subsample_max"        : 2000,
+        "dirs_subsample_max"        : 1000,
         "face_detect"               : True,
         "face_detect_thresh"        : 0.2,
         "pose_detect"               : True,

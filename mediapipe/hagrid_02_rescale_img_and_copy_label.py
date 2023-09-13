@@ -2,6 +2,8 @@ import cv2
 import os, sys
 import shutil
 
+YOLO_IMAGE_SIZE = (416,416)
+
 def get_images_in_current_dir(dir):
     if not os.path.isdir(dir):
         return None
@@ -23,6 +25,9 @@ def get_all_files_in_dir(dir_list =[]):
     return images
 
 def copy_one_file(source, target):
+    if os.path.isfile(target):
+        os.remove(target)
+
     try:
         shutil.copy(source, target)
     except IOError as e:
@@ -49,17 +54,17 @@ def copy_hagrid_label_to_new_path(filenames:list, pattern = "mp_hand"):
         tar_file = src_file.replace("_mp_hand.txt", ".txt")
         tar_file = tar_file.replace('hand_fullset', 'hand_sample').replace('train_labels', 'train')
         ensure_file_dir(tar_file)
+
         copy_one_file(src_file, tar_file)
-        print(src_file, '->')
-        print(tar_file)
-        break
+        #print(src_file, '->')
+        #print(tar_file)
+        #break
     print(f"select_labels_files:{len(select_files)}")
 
 
 def rescale_hagrid_image_to_new_path(filenames:list, pattern = "mp_hand"):
     #   /home/leo/hand_fullset/train_labels/call/5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb_mp_hand.txt  =>
     #   /home/leo/hand_sample/train/call/5ade9bf2-07bd-4d9b-b3a3-fc736267cfeb.txt
-    YOLO_IMAGE_SIZE = (410,410)
     select_files = []
     for each in filenames:
         if pattern in each:
@@ -75,9 +80,9 @@ def rescale_hagrid_image_to_new_path(filenames:list, pattern = "mp_hand"):
         frame = cv2.imread(src_file)
         frame = cv2.resize(frame, YOLO_IMAGE_SIZE)
         cv2.imwrite(tar_file, frame)
-        print(src_file, '->')
-        print(tar_file)
-        break
+        #print(src_file, '->')
+        #print(tar_file)
+        #break
 
     print(f"scale_image_files:{len(select_files)}")
 
