@@ -32,7 +32,7 @@ def select_file_with_pattern(files:list, pattern = ["mp_hand"]):
 
 if __name__ == '__main__':
     path  = "/home/leo/hand_sample/train"
-    filelist  = os.path.join(path, "filelist.txt")
+    filelist  = os.path.join(path, "sel_hagrid_filelist.txt")
 
     all_files = get_all_files_in_dir([path])
     img_files = select_file_with_pattern(all_files, ['jpg', 'png'])
@@ -46,8 +46,10 @@ if __name__ == '__main__':
         labelf_base = imagef_base.replace(".jpg", ".txt").replace(".png", ".txt")
         labelf = os.path.join(imagef_dir, labelf_base)
         if labelf in label_files:
-            file.write(labelf)
+            file.write(imagef)
             file.write("\n")
             count += 1
     file.close()
+
+    print("generate:", filelist)
     print("files:", count)

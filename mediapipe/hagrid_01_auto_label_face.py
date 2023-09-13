@@ -4,228 +4,11 @@ import os, time
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
+import com_detection as comm
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
-
-EXIT_KEY = 'q'
-
-file_ext = ['jpg', 'jpeg']
-YOLO_IMAGE_SIZE = (416,416)
-
-YOLO_HUMAN_HUMAN_ID   = 0
-YOLO_HUMAN_FACE_ID    = 1
-YOLO_HUMAN_HAND_ID    = 2
-YOLO_HUMAN_BODY_ID    = 3
-YOLO_HUMAN_FOOT_ID    = 4
-#
-YOLO_HUMAN_HAND_ONE   = 5
-YOLO_HUMAN_HAND_TWO   = 6     #peace, peace_inv, two_up
-YOLO_HUMAN_HAND_THREE = 7
-YOLO_HUMAN_HAND_FOUR  = 8
-YOLO_HUMAN_HAND_FIVE  = 9     #five,stop        -->Larger
-YOLO_HUMAN_HAND_OK    = 10    #                 -->Smaller
-YOLO_HUMAN_HAND_LIKE  = 11
-YOLO_HUMAN_HAND_CALL  = 12
-YOLO_HUMAN_HAND_FIST  = 13
-#
-YOLO_DOG_ID      = 14
-YOLO_CAT_ID      = 15
-YOLO_BIRD_ID     = 16
-YOLO_HORSE_ID    = 17
-YOLO_SHEEP_ID    = 18
-YOLO_CAR_ID      = 19
-
-id_names = {
-    YOLO_HUMAN_HUMAN_ID   : "human",
-    YOLO_HUMAN_FACE_ID    : "face",
-    YOLO_HUMAN_HAND_ID    : "hand",
-    YOLO_HUMAN_BODY_ID    : "body",
-    YOLO_HUMAN_FOOT_ID    : "foot",
-    #
-    YOLO_HUMAN_HAND_ONE   : "one",
-    YOLO_HUMAN_HAND_TWO   : "two",
-    YOLO_HUMAN_HAND_THREE : "three",
-    YOLO_HUMAN_HAND_FOUR  : "four",
-    YOLO_HUMAN_HAND_FIVE  : "five",
-    YOLO_HUMAN_HAND_OK    : "ok",
-    YOLO_HUMAN_HAND_LIKE  : "like",
-    YOLO_HUMAN_HAND_CALL  : "call",
-    YOLO_HUMAN_HAND_FIST  : "fist",
-    #
-    YOLO_DOG_ID      : "dog",
-    YOLO_CAT_ID      : "cat",
-    YOLO_BIRD_ID     : "bird",
-    YOLO_HORSE_ID    : "horse",
-    YOLO_SHEEP_ID    : "sheep",
-    YOLO_CAR_ID      : "car",
-}
-
-folder_to_id = {
-    'call'          : YOLO_HUMAN_HAND_CALL,
-    'fist'          : YOLO_HUMAN_HAND_FIST,
-    'four'          : YOLO_HUMAN_HAND_FOUR,
-    'like'          : YOLO_HUMAN_HAND_LIKE,
-    'ok'            : YOLO_HUMAN_HAND_OK,
-    'one'           : YOLO_HUMAN_HAND_ONE,
-    'palm'          : YOLO_HUMAN_HAND_FIVE,
-    'stop'          : YOLO_HUMAN_HAND_FIVE,
-    'stop_inverted' : YOLO_HUMAN_HAND_FIVE,
-    'peace'         : YOLO_HUMAN_HAND_TWO,
-    'peace_inverted': YOLO_HUMAN_HAND_TWO,
-    'three'         : YOLO_HUMAN_HAND_THREE,
-}
-
-linefont = cv2.FONT_HERSHEY_SIMPLEX
-
-def id_to_names(id):
-    id = int(id)
-    if id in id_names.keys():
-        return id_names[id]
-    else:
-        return f"ID:{id}"
-
-
-def get_images_in_current_dir(dir):
-    if not os.path.isdir(dir):
-        return None
-    files = os.listdir(dir)
-    select_files = []
-    for onefile in files:
-        ext = onefile.split(".")[-1]
-        if ext in file_ext:
-            select_files.append(os.path.join(dir, onefile))
-    return select_files
-
-def get_all_image_in_dir(dir_list =[], subsample=100000):
-    images = []
-    for one_dir in dir_list:
-        for entry in os.listdir(one_dir):
-            path = os.path.join(one_dir, entry)
-            if os.path.isdir(path):
-                imgs = get_images_in_current_dir(path)
-
-                if (len(imgs) >= subsample):
-                    imgs = imgs[0:subsample]
-
-                images.extend(imgs)
-                print(len(imgs), "totals:", len(images), path)
-        break #quick debug
-    return images
-
-def get_rect_from_landmarks(id, landmarks, alist:list, margin=0, min_point = 1, hotfix_y_max = 1.0):
-    all_x = []
-    all_y = []
-    num = 0
-    for mark in alist:
-        x = landmarks[mark].x
-        y = landmarks[mark].y
-        if (x >= 0) and (x <= 1.0) and (y >= 0) and (y <= 1.0):
-            num+=1
-
-            x0 = min(x - margin, hotfix_y_max)
-            x1 = min(x + margin, hotfix_y_max)
-            x2 = min(x,          hotfix_y_max)
-            x0 = max(x0, 0.0)
-            all_x.append(x0)
-            all_x.append(x1)
-            all_x.append(x2)
-
-            y0 = min(y - margin, hotfix_y_max)
-            y1 = min(y + margin, hotfix_y_max)
-            y2 = min(y,          hotfix_y_max)
-            y0 = max(y0, 0.0)
-            all_y.append(y0)
-            all_y.append(y0)
-            all_y.append(y1)
-
-    if len(all_x) > 0 and len(all_y) > 0 and num >= min_point:
-        #x,y,w,h
-        x = min(all_x)
-        y = min(all_y)
-        w = max(all_x)-x
-        h = max(all_y)-y
-        info = (id, id_names[id], 1.0, (x,y,w,h))
-        return info
-    else:
-        return None
-
-def body_info_from_landmark(landmarks, hotfix_y_max = 1.0):
-    INDEX = mp_pose.PoseLandmark
-    #margin_x = landmarks[INDEX.LEFT_EYE].x - landmarks[INDEX.RIGHT_EYE].x
-    #margin_y = landmarks[INDEX.LEFT_EYE].y - landmarks[INDEX.RIGHT_EYE].y
-    #head_margin = max(margin_x, margin_y)
-    #print(margin)
-
-    foot_margin_x = landmarks[INDEX.LEFT_HEEL].x - landmarks[INDEX.LEFT_FOOT_INDEX].x
-    foot_margin_y = landmarks[INDEX.LEFT_HEEL].y - landmarks[INDEX.LEFT_FOOT_INDEX].y
-    foot_margin = max(foot_margin_x, foot_margin_y) / 1.5
-
-    #head_face_list   = [INDEX.NOSE, INDEX.LEFT_EYE, INDEX.RIGHT_EYE, INDEX.LEFT_EAR, INDEX.RIGHT_EAR, INDEX.MOUTH_LEFT, INDEX.MOUTH_RIGHT]
-    #body_marks_list  = [INDEX.LEFT_SHOULDER, INDEX.RIGHT_SHOULDER, INDEX.LEFT_HIP, INDEX.RIGHT_HIP, INDEX.LEFT_KNEE, INDEX.RIGHT_KNEE]
-    body_marks_list  = [INDEX.LEFT_SHOULDER, INDEX.RIGHT_SHOULDER, INDEX.LEFT_HIP, INDEX.RIGHT_HIP]
-    #
-    #hand_left_list   = [INDEX.LEFT_WRIST, INDEX.LEFT_PINKY, INDEX.LEFT_INDEX, INDEX.LEFT_THUMB]
-    #hand_right_list  = [INDEX.RIGHT_WRIST, INDEX.RIGHT_PINKY, INDEX.RIGHT_INDEX, INDEX.RIGHT_THUMB]
-    #foot_left_list   = [INDEX.LEFT_ANKLE, INDEX.LEFT_HEEL, INDEX.LEFT_FOOT_INDEX]
-    #foot_right_list  = [INDEX.RIGHT_ANKLE, INDEX.RIGHT_HEEL, INDEX.RIGHT_FOOT_INDEX]
-    #
-    leg_list  = [INDEX.RIGHT_ANKLE, INDEX.RIGHT_HEEL, INDEX.RIGHT_FOOT_INDEX, INDEX.RIGHT_KNEE,
-                 INDEX.LEFT_ANKLE,  INDEX.LEFT_HEEL,  INDEX.LEFT_FOOT_INDEX,  INDEX.LEFT_KNEE]
-    #head        = get_rect_from_landmarks(YOLO_HUMAN_FACE_ID, landmarks, head_face_list, head_margin)
-    body        = get_rect_from_landmarks(YOLO_HUMAN_BODY_ID, landmarks, body_marks_list, 0, 4, hotfix_y_max)
-    #hand_left   = get_rect_from_landmarks(YOLO_HUMAN_HAND_ID, landmarks, hand_left_list,  0)
-    #hand_right  = get_rect_from_landmarks(YOLO_HUMAN_HAND_ID, landmarks, hand_right_list, 0)
-    #foot_left   = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, foot_left_list,  foot_margin)
-    #foot_right  = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, foot_right_list, foot_margin)
-    #
-    leg  = get_rect_from_landmarks(YOLO_HUMAN_FOOT_ID, landmarks, leg_list, foot_margin, 5, hotfix_y_max)
-    rects = []
-    #if head: rects.append(head)                #ignore head
-    #if hand_left: rects.append(hand_left)
-    #if hand_right: rects.append(hand_right)
-    #if foot_left: rects.append(foot_left)
-    #if foot_right: rects.append(foot_right)
-    if body: rects.append(body)
-    if leg: rects.append(leg)
-    #print(rects)
-    return rects
-
-def get_object_detector(thresh=0.40):
-    from mediapipe.tasks import python
-    from mediapipe.tasks.python import vision
-    #
-    base_options = python.BaseOptions(model_asset_path='efficientdet_lite2.tflite')
-    options = vision.ObjectDetectorOptions(base_options=base_options, score_threshold=thresh)
-    detector = vision.ObjectDetector.create_from_options(options)
-    return detector
-
-def calc_rect_distance(rect1, rect2):
-    ''' d^2 = x^2 + y^2 '''
-    c1_x = rect1[0] + rect1[2] / 2.0
-    c1_y = rect1[1] + rect1[3] / 2.0
-
-    c2_x = rect2[0] + rect2[2] / 2.0
-    c2_y = rect2[1] + rect2[3] / 2.0
-
-    return pow(c1_x-c2_x, 2) + pow(c1_y-c2_y, 2)
-
-
-def draw_info_on_image(image, width, height, info:list, cc=(250, 250, 0), thinkness=1):
-    _, yolo_name, prob, rect_xywh = info
-    a_xywh = (rect_xywh[0]*width, rect_xywh[1]*height, rect_xywh[2]*width, rect_xywh[3]*height)
-    a_xywh = int(a_xywh[0]), int(a_xywh[1]), int(a_xywh[2]), int(a_xywh[3])
-    text = f'{yolo_name}:{prob:.2f}'
-    #
-    cv2.rectangle(image, a_xywh, cc, thinkness)
-    cv2.putText(image, text, (a_xywh[0]+10, a_xywh[1]-10), linefont, 0.5, cc, thinkness)
-
-def info_to_yolo_string(info:list):
-    yolo_id_idx, _, _, xywh = info
-    #output yolo bbox fmt:  x,y,w,h -> cx,xy,w,h
-    yolo_cxcywh = (xywh[0]+xywh[2]/2.0, xywh[1]+xywh[3]/2.0, xywh[2], xywh[3])
-    yolo_string = f"{yolo_id_idx} {yolo_cxcywh[0]} {yolo_cxcywh[1]} {yolo_cxcywh[2]} {yolo_cxcywh[3]} \n"
-    return yolo_string
 
 def auto_label_face_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
@@ -246,15 +29,14 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
     }
 
     pose_detection = mp_pose.Pose(mp_pose_cfg)
-
-    object_detection = get_object_detector(config['person_detect_thresh'])
+    object_detection = comm.get_object_detector(config['person_detect_thresh'])
 
     #cap = cv2.VideoCapture(0)
     with mpFaceDetector.FaceDetection(**mp_face_cfg) as faceDetection:
 
         for _, imagef in enumerate(imagefiles):
             frame = cv2.imread(imagef)
-            frame = cv2.resize(frame, YOLO_IMAGE_SIZE)
+            frame = cv2.resize(frame, comm.YOLO_IMAGE_SIZE)
             height, width, _  = frame.shape
 
             # Flip the frame horizontally
@@ -296,10 +78,10 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     person_box = (bbox.origin_x/float(width), bbox.origin_y/float(height), bbox.width/float(width), bbox.height/float(height))
                     y_max = person_box[1] + person_box[3]
                     prob = round(category.score, 2)
-                    info = [YOLO_HUMAN_HUMAN_ID, id_to_names(YOLO_HUMAN_HUMAN_ID), prob, person_box]
+                    info = [comm.YOLO_HUMAN_ID, comm.id_to_names(comm.YOLO_HUMAN_ID), prob, person_box]
                     if config["show_image"]:
-                        draw_info_on_image(image, width, height, info, pson_cc, 1)
-                    person_label.append(info_to_yolo_string(info))
+                        comm.draw_info_on_image(image, width, height, info, pson_cc, 1)
+                    person_label.append(comm.info_to_yolo_string(info))
                     person_num+=1
 
                 if person_num == 1:
@@ -317,12 +99,12 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 if pose_result.pose_landmarks :
                     #https://blog.csdn.net/weixin_43229348/article/details/120541448
                     #https://developers.google.cn/android/reference/com/google/mlkit/vision/pose/PoseLandmark
-                    body_info = body_info_from_landmark(pose_result.pose_landmarks.landmark, hotfix_one_person_y_max)
+                    body_info = comm.body_info_from_landmark(pose_result.pose_landmarks.landmark, hotfix_one_person_y_max)
                     body_cc = (250, 250, 0)
                     for a_info in body_info:
                         if config["show_image"]:
-                            draw_info_on_image(image, width, height, a_info, body_cc, 1)
-                        bodys_label.append(info_to_yolo_string(a_info))
+                            comm.draw_info_on_image(image, width, height, a_info, body_cc, 1)
+                        bodys_label.append(comm.info_to_yolo_string(a_info))
 
             if config['face_detect']:
                 face_cc = (0, 0, 250)
@@ -333,10 +115,10 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                         box = detection.location_data.relative_bounding_box
                         face_box = [box.xmin, box.ymin, box.width, box.height]
 
-                        info = [YOLO_HUMAN_FACE_ID, id_to_names(YOLO_HUMAN_FACE_ID), detection.score[0], face_box]
+                        info = [comm.YOLO_FACE_ID, comm.id_to_names(comm.YOLO_FACE_ID), detection.score[0], face_box]
                         if config["show_image"]:
-                            draw_info_on_image(image, width, height, info, face_cc, 1)
-                        faces_label.append(info_to_yolo_string(info))
+                            comm.draw_info_on_image(image, width, height, info, face_cc, 1)
+                        faces_label.append(comm.info_to_yolo_string(info))
 
             hagrid_labels = []
             #print(imagef)
@@ -368,10 +150,10 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     box_height = float(items[4])
                     #
                     a_box = [box_xmin, box_ymin, box_width, box_height]
-                    info = [yolo_id, id_to_names(yolo_id), 1.0, a_box]
-                    draw_info_on_image(image, width, height, info, txtfile_cc, 1)
+                    info = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
+                    comm.draw_info_on_image(image, width, height, info, txtfile_cc, 1)
 
-                    if yolo_id == YOLO_HUMAN_HAND_ID:
+                    if yolo_id == comm.YOLO_HAND_ID:
                         hands_box.append(a_box)
 
                 #
@@ -386,18 +168,18 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
 
                     # Generate Gesture
                     #  folder -> gesture
-                    #    N:\hand_fullset\train\call\xxxx.jpg  -> 'call'  -> YOLO_HUMAN_HAND_CALL
-                    #    N:\hand_fullset\train\three\xxxx.jpg -> 'three' -> YOLO_HUMAN_HAND_THREE
+                    #    N:\hand_fullset\train\call\xxxx.jpg  -> 'call'  -> comm.YOLO_HAND_CALL
+                    #    N:\hand_fullset\train\three\xxxx.jpg -> 'three' -> comm.YOLO_HAND_THREE
                     pathname = os.path.dirname(imagef)
                     basename = os.path.basename(pathname)
                     #print(imagef, pathname, basename)
 
-                    if basename in folder_to_id.keys():
-                        yolo_id = folder_to_id[basename]
-                        info = [yolo_id, id_to_names(yolo_id), 1.0, hand_gesture_box]
+                    if basename in comm.folder_to_id.keys():
+                        yolo_id = comm.folder_to_id[basename]
+                        info = [yolo_id, comm.id_to_names(yolo_id), 1.0, hand_gesture_box]
                         if config["show_image"]:
-                            draw_info_on_image(image, width, height, info, txtfile_cc, 2)
-                        hand_gesture_label.append(info_to_yolo_string(info))
+                            comm.draw_info_on_image(image, width, height, info, txtfile_cc, 2)
+                        hand_gesture_label.append(comm.info_to_yolo_string(info))
 
             if config["auto_label"]:
                 if config['hagrid_parse_labels'] and person_num <= 0:
@@ -423,7 +205,7 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 wait_time = config["show_image_wait"]
                 if wait_time > 0:
                     time.sleep(wait_time)
-                if (cv2.waitKey(10) & 0xFF == ord(EXIT_KEY)):
+                if (cv2.waitKey(10) & 0xFF == ord(comm.EXIT_KEY)):
                     break
 
 if __name__ == '__main__':
@@ -449,25 +231,8 @@ if __name__ == '__main__':
         "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
     }
 
-    DEBUG = 55555555
-    if DEBUG == 0:
-        #
-        config = {
-            "show_image"                : True,
-            "show_image_wait"           : 0.6,
-            "dirs"                      : image_dir,
-            "dirs_subsample_max"        : 1000,
-            "face_detect"               : True,
-            "face_detect_thresh"        : 0.2,
-            "pose_detect"               : True,
-            "pose_detect_thresh"        : 0.1,
-            "person_detect"             : True,
-            "person_detect_thresh"      : 0.30,
-            "auto_label"                : False,
-            "hagrid_parse_labels"       : True,     # hagrid read hand label data
-            "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
-        }
-    elif DEBUG == 1:
+    DEBUG = 1
+    if DEBUG == 1:
         # show label data
         config = {
             "show_image"                : True,
@@ -480,9 +245,9 @@ if __name__ == '__main__':
             "pose_detect_thresh"        : 0.2,
             "person_detect"             : True,
             "person_detect_thresh"      : 0.30,
-            "auto_label"                : True,
+            "auto_label"                : False,
             "hagrid_parse_labels"       : True,     # hagrid read hand label data
             "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
         }
-    images = get_all_image_in_dir(config["dirs"], config["dirs_subsample_max"])
+    images = comm.get_all_image_in_dir(config["dirs"], config["dirs_subsample_max"])
     auto_label_face_for_yolo(images, config)

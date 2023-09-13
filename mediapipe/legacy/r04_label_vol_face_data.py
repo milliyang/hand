@@ -172,24 +172,8 @@ def auto_label_face_for_yolo(imagefiles = [], show=False):
                 if (cv2.waitKey(10) & 0xFF == ord(EXIT_KEY)):
                     break
 
-# if __name__ == '__main__':
-#     config = {
-#         "show_image"        : False,
-#         "dirs"              : image_dir,
-#         "auto_label"        : True,     #   xxxx.txt -> xxxx.auto_hand.txt
-#     }
-
-#     config = {
-#         "show_image"        : True,
-#         "dirs"              : image_dir,
-#         "auto_label"        : False,
-#     }
-#     images = get_all_image_in_dir(config["dirs"])
-#     auto_label_face_for_yolo(images, config)
-
-
 if __name__ == '__main__':
-    vol_image_list = "/home/leo/myhome/dataset/selected_train.txt"
+    vol_image_list = "/home/leo/myhome/dataset/selected_voc_train.txt"
 
     afile = open(vol_image_list)
     images = afile.readlines()
