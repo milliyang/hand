@@ -97,8 +97,8 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
             voc_valid_labels = []
             #print(imagef)
             #image: /home/leo/myhome/dataset/VOCdevkit/VOC2012/JPEGImages/
-            #label: /home/leo/myhome/dataset/VOCdevkit/VOC2012/labels/
-            labelfile = imagef.replace("JPEGImages", "labels").replace(".jpg", ".txt")
+            #label: /home/leo/myhome/dataset/VOCdevkit/VOC2012/labels_voc/
+            labelfile = imagef.replace("JPEGImages", "labels_voc").replace(".jpg", ".txt")
 
             voc_has_person = 0
 

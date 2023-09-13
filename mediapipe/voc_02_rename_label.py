@@ -51,18 +51,20 @@ def select_file_with_pattern(files:list, pattern = ["mp_hand"]):
     return select_files
 
 def copy_voc_label_to_new_dir(select_files:list):
-    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels/2011_001449_mp_hand.txt  =>
-    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels_imvt/2011_001449.txt
+    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels_voc/2011_001449_mp_hand.txt  =>
+    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels/2011_001449.txt
     for onefile in select_files:
-        new_file = onefile.replace("_mp_hand.txt", ".txt").replace("labels", "labels_imvt")
+        new_file = onefile.replace("_mp_hand.txt", ".txt").replace("labels_voc", "labels")
         ensure_file_dir(new_file)
         copy_one_file(onefile, new_file)
 
 def generate_voc_filelist(select_files, filename="filelist.txt"):
+    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels/2011_001449_mp_hand.txt  =>
+    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/JPEGImages/2011_001449.jpg
     file = open(filename, "w")
     count = 0
     for labelf in select_files:
-        imagef = labelf.replace("_mp_hand.txt", ".jpg")
+        imagef = labelf.replace("_mp_hand.txt", ".jpg").replace("labels_voc", "JPEGImages")
         file.write(imagef)
         file.write("\n")
         count += 1
@@ -76,16 +78,17 @@ if __name__ == '__main__':
         '/mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2007/'
     ]
     output_path = "/mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/"
+    output_name = "sel_voc_filelist.txt"
 
-    # 1, rename label
-    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels/2011_001449_mp_hand.txt  =>
+    # 1, copy label
+    #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels_voc/2011_001449_mp_hand.txt  =>
     #   /mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/VOCdevkit/VOC2012/labels/2011_001449.txt
     all_files = get_all_files_in_dir(path_list)
 
     select_files = select_file_with_pattern(all_files, pattern=["mp_hand"])
-    print(f"files:{len(select_files)}")
+    print(f"mp_hand.txt  files:{len(select_files)}")
 
     copy_voc_label_to_new_dir(select_files)
 
-    filelist = os.path.join(output_path, "sel_voc_filelist.txt")
-    generate_voc_filelist(select_files, filename=filelist)
+    generate_voc_filelist(select_files, filename=os.path.join(output_path, output_name))
+    generate_voc_filelist(select_files, filename=output_name)
