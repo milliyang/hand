@@ -2,38 +2,11 @@ import cv2
 import mediapipe as mp
 import os, time
 import com_detection as comm
-
-def get_images_in_current_dir(dir):
-    if not os.path.isdir(dir):
-        return None
-    files = os.listdir(dir)
-    select_files = []
-    for onefile in files:
-        select_files.append(os.path.join(dir, onefile))
-    return select_files
-
-def get_all_files_in_dir(dir_list =[]):
-    images = []
-    for one_dir in dir_list:
-        for entry in os.listdir(one_dir):
-            path = os.path.join(one_dir, entry)
-            if os.path.isdir(path):
-                imgs = get_images_in_current_dir(path)
-                images.extend(imgs)
-                print(len(imgs), "totals:", len(images), path)
-    return images
-
-def select_file_with_pattern(files:list, pattern = ["mp_hand"]):
-    select_files = []
-    for each in files:
-        for pp in pattern:
-            if pp in each:
-                select_files.append(each)
-    return select_files
+import com_files as comf
 
 if __name__ == '__main__':
 
-    img_files = comm.read_filelist("sel_wider_filelist.txt")
+    img_files = comf.read_filelist("output/sel_wider_filelist.txt")
 
     for imagef in img_files:
         print(imagef)
@@ -41,9 +14,9 @@ if __name__ == '__main__':
         frame = cv2.resize(frame, comm.YOLO_IMAGE_SIZE)
         height, width, _  = frame.shape
 
-        #/home/leo/hand_sample/train/three/714c1805-2402-4b35-94a1-162aad6d066c.jpg
-        #/home/leo/hand_sample/train/three/714c1805-2402-4b35-94a1-162aad6d066c.txt
-        labelfile = imagef.replace(".jpg", ".txt")
+        #/home/leo/myhome/WIDER_train/images/0--Parade/0_Parade_marchingband_1_849.jpg
+        #/home/leo/myhome/WIDER_train/labels/0--Parade/0_Parade_marchingband_1_849.txt
+        labelfile = imagef.replace(".jpg", ".txt").replace("images", "labels")
         #print(labelfile)
 
         ff = open(labelfile)

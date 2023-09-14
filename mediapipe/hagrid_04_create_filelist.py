@@ -59,5 +59,5 @@ if __name__ == '__main__':
 
     output_path = "/mnt/214cd1a6-9d1b-4b2a-9770-425b64e6884f/myhome/dataset/"
     output_name = "sel_hagrid_filelist.txt"
-    generate_filelist(image_files_with_label,  output_name)
+    generate_filelist(image_files_with_label,  os.path.join("./output",  output_name))
     generate_filelist(image_files_with_label,  os.path.join(output_path, output_name))

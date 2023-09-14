@@ -5,6 +5,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 import com_detection as comm
+import com_files as comf
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose_style = mp.solutions.drawing_styles.get_default_pose_landmarks_style()
@@ -211,7 +212,7 @@ if __name__ == '__main__':
         "wider_parse_labels"        : True,     # hagrid read hand label data
     }
 
-    DEBUG = 909999
+    DEBUG = 1111
     if DEBUG == 1:
         config = {
             "show_image"                : True,
@@ -229,6 +230,6 @@ if __name__ == '__main__':
         }
 
     vol_image_list = "/home/leo/myhome/WIDER_train/wider_filelists.txt"
-    images = comm.read_filelist(vol_image_list)
+    images = comf.read_filelist(vol_image_list)
 
     auto_label_vol_for_yolo(images, config)

@@ -1,12 +1,6 @@
 import sys, os
 import cv2
-
-def ensure_file_dir(filepath):
-    try:
-        pathname = os.path.dirname(filepath)
-        os.makedirs(pathname)
-    except:
-        pass
+import com_files as comf
 
 if __name__ == '__main__':
 
@@ -50,7 +44,7 @@ if __name__ == '__main__':
 
             label_filename = os.path.join(label_out_path, filename)
             label_filename = label_filename.replace(".jpg", ".txt")
-            ensure_file_dir(label_filename)
+            comf.ensure_file_dir(label_filename)
 
             img = cv2.imread(img_file)
             height, width, _ = img.shape
