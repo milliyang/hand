@@ -1,14 +1,8 @@
 import cv2
 import mediapipe as mp
 import os, time
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
 
 import com_detection as comm
-
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_pose = mp.solutions.pose
 
 def auto_label_face_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
@@ -17,18 +11,8 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
         "min_detection_confidence" : config['face_detect_thresh'], #0.5
         "model_selection" : 1,      # 1,near,far; 0,near;
     }
-    mp_pose_cfg = {
-        "static_image_mode"         : True,
-        "model_complexity"          : 2,    #0,1,2
-        "enable_segmentation"       : False,
-        "min_detection_confidence"  : config['pose_detect_thresh'], #0.5
-        "upper_body_only"           : False,
-        "enable_segmentation"       : False,
-        "smooth_segmentation"       : False,
-        "min_tracking_confidence"   : 0.5,
-    }
 
-    pose_detection = mp_pose.Pose(mp_pose_cfg)
+    pose_detection = comm.post_get_detector(config['pose_detect_thresh'])
     object_detection = comm.get_object_detector(config['person_detect_thresh'])
 
     #cap = cv2.VideoCapture(0)
@@ -89,13 +73,8 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
 
             if config["pose_detect"]:
                 pose_result = pose_detection.process(image_rgb)
-                #draw pose
-                mp_drawing.draw_landmarks(
-                image,
-                pose_result.pose_landmarks,
-                mp_pose.POSE_CONNECTIONS,
-                landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
-
+                if config["show_image"]:
+                    comm.pose_draw_pose_landmarks(image, pose_result.pose_landmarks)
                 if pose_result.pose_landmarks :
                     #https://blog.csdn.net/weixin_43229348/article/details/120541448
                     #https://developers.google.cn/android/reference/com/google/mlkit/vision/pose/PoseLandmark
@@ -233,21 +212,10 @@ if __name__ == '__main__':
 
     DEBUG = 1
     if DEBUG == 1:
-        # show label data
-        config = {
-            "show_image"                : True,
-            "show_image_wait"           : 1.0,
-            "dirs"                      : image_dir,
-            "dirs_subsample_max"        : 5,
-            "face_detect"               : True,
-            "face_detect_thresh"        : 0.2,
-            "pose_detect"               : True,
-            "pose_detect_thresh"        : 0.2,
-            "person_detect"             : True,
-            "person_detect_thresh"      : 0.30,
-            "auto_label"                : False,
-            "hagrid_parse_labels"       : True,     # hagrid read hand label data
-            "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
-        }
+        config["show_image"]                = True
+        config["show_image_wait"]           = 1
+        config["dirs_subsample_max"]        = 5
+        config["auto_label"]                = False
+
     images = comm.get_all_image_in_dir(config["dirs"], config["dirs_subsample_max"])
     auto_label_face_for_yolo(images, config)

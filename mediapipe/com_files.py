@@ -63,3 +63,11 @@ def copy_one_file(source, target):
         print("Unable to copy file.", e)
     except:
         print("Unexpected error:", sys.exc_info())
+
+def write_list_to_file(alist: list, filename="filelist.txt"):
+    file = open(filename, "w")
+    for item in alist:
+        file.write(item)
+        file.write("\n")
+    file.close()
+    print("generate:", filename, "  num:", len(alist))

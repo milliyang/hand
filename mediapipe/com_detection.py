@@ -179,6 +179,27 @@ def get_rect_from_landmarks(id, landmarks, alist:list, margin=0, min_point = 1, 
     else:
         return None
 
+def post_get_detector(thresh=0.3):
+    mp_pose = mp.solutions.pose
+    mp_pose_cfg = {
+        "static_image_mode"         : True,
+        "model_complexity"          : 2,    #0,1,2
+        "enable_segmentation"       : False,
+        "min_detection_confidence"  : thresh, #0.5
+        "upper_body_only"           : False,
+        "enable_segmentation"       : False,
+        "smooth_segmentation"       : False,
+        "min_tracking_confidence"   : 0.5,
+    }
+    detector = mp_pose.Pose(mp_pose_cfg)
+    return detector
+
+def pose_draw_pose_landmarks(image, landmarks):
+    mp_drawing = mp.solutions.drawing_utils
+    mp_drawing_styles = mp.solutions.drawing_styles
+    mp_pose = mp.solutions.pose
+    mp_drawing.draw_landmarks(image, landmarks, mp_pose.POSE_CONNECTIONS, landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+
 def body_info_from_landmark(landmarks, hotfix_y_max = 1.0):
     mp_pose = mp.solutions.pose
     INDEX = mp_pose.PoseLandmark

@@ -1,17 +1,9 @@
 import cv2
 import mediapipe as mp
 import os, time
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
 
 import com_detection as comm
-
-mp_drawing = mp.solutions.drawing_utils
-mp_pose_style = mp.solutions.drawing_styles.get_default_pose_landmarks_style()
-mp_pose = mp.solutions.pose
-
-
-
+import com_files as comf
 
 def auto_label_vol_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
@@ -20,18 +12,7 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
         "min_detection_confidence" : config['face_detect_thresh'], #0.5
         "model_selection" : 1,      # 1,near,far; 0,near;
     }
-    mp_pose_cfg = {
-        "static_image_mode"         : True,
-        "model_complexity"          : 2,    #0,1,2
-        "enable_segmentation"       : False,
-        "min_detection_confidence"  : config['pose_detect_thresh'], #0.5
-        "upper_body_only"           : False,
-        "enable_segmentation"       : False,
-        "smooth_segmentation"       : False,
-        "min_tracking_confidence"   : 0.5,
-    }
-
-    pose_detection = mp_pose.Pose(mp_pose_cfg)
+    pose_detection = comm.post_get_detector(config['pose_detect_thresh'])
     object_detection = comm.get_object_detector(config['person_detect_thresh'])
     hand_detection = comm.get_hand_detector(config['hand_detect_thresh'])
 
@@ -134,9 +115,8 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
             if voc_has_person:
                 if config["pose_detect"]:
                     pose_result = pose_detection.process(image_rgb)
-                    #draw pose
-                    #mp_drawing.draw_landmarks(image, pose_result.pose_landmarks, mp_pose.POSE_CONNECTIONS, landmark_drawing_spec=mp_pose_style)
-
+                    if config["show_image"]:
+                        comm.pose_draw_pose_landmarks(image, pose_result.pose_landmarks)
                     if pose_result.pose_landmarks :
                         #https://blog.csdn.net/weixin_43229348/article/details/120541448
                         #https://developers.google.cn/android/reference/com/google/mlkit/vision/pose/PoseLandmark
@@ -214,26 +194,12 @@ if __name__ == '__main__':
         "voc_parse_labels"          : True,     # hagrid read hand label data
     }
 
-    DEBUG = 0
+    DEBUG = 1
     if DEBUG == 1:
-        config = {
-            "show_image"                : True,
-            "show_image_wait"           : 1.0,
-            "face_detect"               : True,
-            "face_detect_thresh"        : 0.2,
-            "pose_detect"               : True,
-            "pose_detect_thresh"        : 0.2,
-            "person_detect"             : False,    # no need to detect person, VOC already has person
-            "person_detect_thresh"      : 0.30,
-            "hand_detect"               : True,
-            "hand_detect_thresh"        : 0.3,
-            "auto_label"                : False,
-            "voc_parse_labels"          : True,     # hagrid read hand label data
-        }
+        config["show_image"]        = True
+        config["show_image_wait"]   = 1.0
+        config["auto_label"]        = False
 
-    vol_image_list = "/home/leo/myhome/dataset/selected_voc_train.txt"
-    afile = open(vol_image_list)
-    images = afile.readlines()
-    images = [ima.strip() for ima in images]
-
+    vol_image_filelist = "/home/leo/myhome/dataset/selected_voc_train.txt"
+    images = comf.read_filelist(vol_image_filelist)
     auto_label_vol_for_yolo(images, config)

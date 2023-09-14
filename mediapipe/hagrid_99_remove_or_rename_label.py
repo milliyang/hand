@@ -1,27 +1,7 @@
 import cv2
-import mediapipe as mp
 import os, time
 
-def get_images_in_current_dir(dir):
-    if not os.path.isdir(dir):
-        return None
-    files = os.listdir(dir)
-    select_files = []
-    for onefile in files:
-        select_files.append(os.path.join(dir, onefile))
-    return select_files
-
-def get_all_files_in_dir(dir_list =[]):
-    images = []
-    for one_dir in dir_list:
-        for entry in os.listdir(one_dir):
-            path = os.path.join(one_dir, entry)
-            if os.path.isdir(path):
-                imgs = get_images_in_current_dir(path)
-                images.extend(imgs)
-                print(len(imgs), "totals:", len(images), path)
-    return images
-
+import com_files as comf
 
 def remove_all_file_with_pattern(path, filenames:list, pattern = "mp_hand"):
     remove_files = []
@@ -62,7 +42,7 @@ def rename_mp_hand_files_to_label_files(path, filenames:list):
 if __name__ == '__main__':
     path = "/home/leo/hand_fullset/train_labels"
 
-    all_files = get_all_files_in_dir([path])
+    all_files = comf.get_all_files_in_dir([path])
 
     remove_all_file_with_pattern(path, all_files, pattern="mp_hand")
     #remove_all_file_with_pattern(path, all_files, pattern="txt")
