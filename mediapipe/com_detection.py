@@ -4,6 +4,7 @@ import os, time
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
+EXIT_KEY_Q = 'q'
 EXIT_KEY = 'q'
 
 file_ext = ['jpg', 'jpeg']
@@ -321,3 +322,10 @@ def draw_hand_landmarks(image, landmarks):
                 mp_drawing.DrawingSpec(color=DOT_COLOR, thickness=2, circle_radius=4),
                 mp_drawing.DrawingSpec(color=CONNECTION_COLOR, thickness=2, circle_radius=2)
             )
+
+def read_filelist(filelist):
+    #filelist = "/home/leo/myhome/dataset/selected_voc_train.txt"
+    afile = open(filelist)
+    images = afile.readlines()
+    images = [ima.strip() for ima in images]
+    return images

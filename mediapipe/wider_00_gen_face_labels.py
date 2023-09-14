@@ -1,13 +1,18 @@
 import sys, os
 import cv2
 
-if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Run command: python3 val2yolo.py /path/to/original/widerface [/path/to/save/widerface/val]')
-        exit(1)
+def ensure_file_dir(filepath):
+    try:
+        pathname = os.path.dirname(filepath)
+        os.makedirs(pathname)
+    except:
+        pass
 
-    root_path = sys.argv[1]
-    save_path = sys.argv[2]
+if __name__ == '__main__':
+
+    save_path      = "/home/leo/myhome/WIDER_train/"
+    root_path      = "/home/leo/myhome/WIDER_train/images"
+    label_out_path = "/home/leo/myhome/WIDER_train/labels_face"
 
     label_path = os.path.join(root_path, 'label.txt')
     if not os.path.isfile(label_path):
@@ -15,34 +20,42 @@ if __name__ == '__main__':
         exit(1)
 
     afile = open(label_path)
-    datas = afile.readlines()
+    label_lines = afile.readlines()
     afile.close()
 
-    #N:\myhome\WIDER_train\train\images\0--Parade\xxxxx.jpg
-    #N:\myhome\WIDER_train\train\images\0--Parade\xxxxx.txt
+    #/home/leo/myhome/WIDER_train/images/0--Parade/xxxxx.jpg
+    #/home/leo/myhome/WIDER_train/labels_face0--Parade/xxxxx.txt
 
-    all_files = []
-    for i , v in enumerate(datas):
+    #label_lines format:
+    # 0--Parade/0_Parade_marchingband_1_849.jpg
+    # 1
+    # 449 330 122 149 0 0 0 0 0 0 
+
+    image_files = []
+    for i , v in enumerate(label_lines):
         if ".jpg" in v:
             filename = v.strip()
-            # print(" a->", datas[i+1].strip())
-            num = int(datas[i+1].strip())
+            # print(" a->", label_lines[i+1].strip())
+            num = int(label_lines[i+1].strip())
             # print(" b->", i, filename, num)
 
             faces = []
             for seq in range(1, num+1):
-                item = datas[i+1+seq].strip()
+                item = label_lines[i+1+seq].strip()
                 #print(" c->", seq, item)
                 faces.append(item)
 
-            filename = os.path.join(root_path,filename)
+            img_file = os.path.join(root_path, filename)
+            image_files.append(img_file)
 
-            all_files.append(filename)
-            label_name = filename.replace(".jpg", ".txt")
-            img = cv2.imread(filename)
+            label_filename = os.path.join(label_out_path, filename)
+            label_filename = label_filename.replace(".jpg", ".txt")
+            ensure_file_dir(label_filename)
+
+            img = cv2.imread(img_file)
             height, width, _ = img.shape
             img = None
-            afile = open(label_name, "w+")
+            afile = open(label_filename, "w+")
             # x1, y1, w, h, blur, expression, illumination, invalid, occlusion, pose
             #113 212 11 15 2 0 0 0 0 0
             for face in faces:
@@ -66,18 +79,17 @@ if __name__ == '__main__':
                 afile.write(yolo_fmt)
                 #print(face, yolo_fmt),
             afile.close()
-            #print(f"write:{label_name}")
+            # print(f"write labels:{label_filename}")
             # if i > 10:
             #     break
-    outfilename = os.path.join(save_path, "wider_face_filelists.txt")
+
+    outfilename = os.path.join(save_path, "wider_filelists.txt")
     outfile = open(outfilename, "w+")
-    for each in all_files:
+    for each in image_files:
         filepath = os.path.abspath(each)
         outfile.write(filepath + "\n")
     outfile.close()
 
-
     print(f"output:{outfilename}")
-    print(f"   num:{len(all_files)}")
-    
-# python run01_to_yolo.py train/images/ .
+    print(f"   num:{len(image_files)}")
+
