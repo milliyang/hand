@@ -1,8 +1,6 @@
 import cv2
 import mediapipe as mp
 import os, time
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
 
 import com_detection as comm
 import com_files as comf
@@ -195,24 +193,13 @@ if __name__ == '__main__':
         "wider_parse_labels"        : True,     # hagrid read hand label data
     }
 
-    DEBUG = 1111
+    DEBUG = 1
     if DEBUG == 1:
-        config = {
-            "show_image"                : True,
-            "show_image_wait"           : 1.0,
-            "face_detect"               : False,
-            "face_detect_thresh"        : 0.2,
-            "pose_detect"               : True,
-            "pose_detect_thresh"        : 0.2,
-            "person_detect"             : True,    # no need to detect person, VOC already has person
-            "person_detect_thresh"      : 0.30,
-            "hand_detect"               : True,
-            "hand_detect_thresh"        : 0.3,
-            "auto_label"                : False,
-            "wider_parse_labels"        : True,     # hagrid read hand label data
-        }
+        config["show_image"]            = True
+        config["show_image_wait"]       = 1.0
+        config["auto_label"]            = True
 
     vol_image_list = "/home/leo/myhome/WIDER_train/wider_filelists.txt"
-    images = comf.read_filelist(vol_image_list)
+    images = comf.read_list(vol_image_list)
 
     auto_label_vol_for_yolo(images, config)

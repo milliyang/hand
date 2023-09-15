@@ -34,13 +34,6 @@ def select_file_with_pattern(files:list, pattern = ["mp_hand"]):
     file_set = set(select_files)
     return list(file_set)
 
-def read_filelist(filelist):
-    #filelist = "/home/leo/myhome/dataset/selected_voc_train.txt"
-    afile = open(filelist)
-    images = afile.readlines()
-    images = [ima.strip() for ima in images]
-    return images
-
 def remove_all_files(files : list):
     for afile in files:
         if os.path.isfile(afile):
@@ -64,10 +57,23 @@ def copy_one_file(source, target):
     except:
         print("Unexpected error:", sys.exc_info())
 
-def write_list_to_file(alist: list, filename="filelist.txt"):
+def read_list(filename):
+    #filename = "/home/leo/myhome/dataset/selected_voc_train.txt"
+    afile = open(filename)
+    images = afile.readlines()
+    images = [ima.strip() for ima in images]
+    return images
+
+def write_list(filename, alist: list):
     file = open(filename, "w")
     for item in alist:
         file.write(item)
         file.write("\n")
     file.close()
+
+def write_list_to_file(alist: list, filename="filelist.txt"):
+    write_list(filename, alist)
     print("generate:", filename, "  num:", len(alist))
+
+def read_filelist(filename):
+    return read_list(filename)

@@ -99,14 +99,14 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                             comm.draw_info_on_image(image, width, height, info, face_cc, 1)
                         faces_label.append(comm.info_to_yolo_string(info))
 
-            hagrid_labels = []
+            hagrid_hand_labels = []
             #print(imagef)
             #image: /home/leo/myhome/hagrid/download/subsample/train/xxx/                   //xxx - guesture
             #label: /home/leo/myhome/hagrid/download/subsample/train_labels/xxx/
             labelfile = imagef.replace("train", "train_labels").replace(".jpg", ".txt")
             if config['hagrid_parse_labels']:
                 ff = open(labelfile)
-                hagrid_labels = ff.readlines()
+                hagrid_hand_labels = ff.readlines()
                 ff.close()
 
                 # Leo:
@@ -116,7 +116,7 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 hand_gesture_box = None
                 txtfile_cc = (0, 255, 120)
 
-                for yolo_fmt in hagrid_labels:
+                for yolo_fmt in hagrid_hand_labels:
                     items = yolo_fmt.strip().split()
                     yolo_id  = int(items[0])
                     #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
@@ -166,7 +166,7 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                 else:
                     new_labelfile = labelfile.replace(".txt", "_mp_hand.txt")
                     file = open(new_labelfile, "w")
-                    for each in hagrid_labels:
+                    for each in hagrid_hand_labels:
                         file.write(each)
                     for each in faces_label:
                         file.write(each)
