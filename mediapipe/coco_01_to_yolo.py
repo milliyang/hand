@@ -49,12 +49,14 @@ def coco_cv_show(catIds, imgIds):
 
     txtfile_cc = (0, 255, 120)
 
+    coco_images = []
+
     for img_id in imgIds:
         img = coco.loadImgs(img_id)[0]
 
         imagef = f"{dataDir}/images/{dataType}/{img['file_name']}"
-        print('imagef', imagef)             # /home/leo/coco/images/val2017/000000413689.jpg
-        print('img_id', img_id)             # 413689
+        #print('imagef', imagef)             # /home/leo/coco/images/val2017/000000413689.jpg
+        #print('img_id', img_id)             # 413689
         #print('coco_url', img['coco_url'])  # http://images.cocodataset.org/val2017/000000108503.jpg
 
         frame = cv2.imread(imagef)
@@ -69,12 +71,11 @@ def coco_cv_show(catIds, imgIds):
         annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIds, iscrowd=None)
         anns = coco.loadAnns(annIds)
 
-
         object_labels = []
 
         for idx, ann in enumerate(anns):
-            print(idx)
-            print(' iscrowd', ann['iscrowd'])
+            #print(idx)
+            #print(' iscrowd', ann['iscrowd'])
             #print(ann)
             if ann['iscrowd']:
                 continue
@@ -98,9 +99,13 @@ def coco_cv_show(catIds, imgIds):
             comf.ensure_file_dir(labelf)
             comf.write_list(labelf, object_labels)
             print('labelf', labelf)
+            coco_images.append(imagef)
 
         #cv2.imshow('Coco', frame)
         #if (cv2.waitKey(1000*3) & 0xFF == ord(comm.EXIT_KEY)): break
+
+    coco_image_list = os.path.join(COCO_PATH, "coco_filelists.txt")
+    comf.write_list_to_file(coco_images, coco_image_list)
 
 coco_show_categories(coco)
 

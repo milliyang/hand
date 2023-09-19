@@ -179,17 +179,21 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                     time.sleep(wait_time)
 
 if __name__ == '__main__':
+    FACE_THRESH = 0.65
+    POSE_THRESH = 0.65
+    HAND_THRESH = 0.65
+
     config = {
         "show_image"                : False,
         "show_image_wait"           : 0,
         "face_detect"               : True,
-        "face_detect_thresh"        : 0.2,
+        "face_detect_thresh"        : FACE_THRESH,
         "pose_detect"               : True,
-        "pose_detect_thresh"        : 0.2,
+        "pose_detect_thresh"        : POSE_THRESH,
         "person_detect"             : False,    # no need to detect person, VOC already has person
         "person_detect_thresh"      : 0.30,
         "hand_detect"               : True,
-        "hand_detect_thresh"        : 0.3,
+        "hand_detect_thresh"        : HAND_THRESH,
         "auto_label"                : True,     #  xxxx.jpg -> xxxx._mp_hand.txt
         "voc_parse_labels"          : True,     # hagrid read hand label data
     }

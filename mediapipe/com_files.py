@@ -64,8 +64,8 @@ def read_list(filename):
     images = [ima.strip() for ima in images]
     return images
 
-def write_list(filename, alist: list):
-    file = open(filename, "w")
+def write_list(filename, alist: list, op = "w"):
+    file = open(filename, op)
     for item in alist:
         file.write(item)
         file.write("\n")

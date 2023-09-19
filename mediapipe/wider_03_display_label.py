@@ -7,6 +7,7 @@ import com_files as comf
 if __name__ == '__main__':
 
     img_files = comf.read_filelist("output/sel_wider_filelist.txt")
+    txtfile_cc = (0, 255, 120)
 
     for imagef in img_files:
         print(imagef)
@@ -14,8 +15,8 @@ if __name__ == '__main__':
         frame = cv2.resize(frame, comm.YOLO_IMAGE_SIZE)
         height, width, _  = frame.shape
 
-        #/home/leo/myhome/WIDER_train/images/0--Parade/0_Parade_marchingband_1_849.jpg
-        #/home/leo/myhome/WIDER_train/labels/0--Parade/0_Parade_marchingband_1_849.txt
+        #/home/leo/myhome/WIDER_train/images/0--Parade/0_Parade_marchingband_1_205.jpg
+        #/home/leo/myhome/WIDER_train/labels/0--Parade/0_Parade_marchingband_1_205.txt
         labelfile = imagef.replace(".jpg", ".txt").replace("images", "labels")
         #print(labelfile)
 
@@ -26,8 +27,6 @@ if __name__ == '__main__':
         # Leo:
         #  1. convert hand -> to number and hand
         #  2. if two hand found, the hand closer to face use number (because we check all the sample image)
-        txtfile_cc = (0, 255, 120)
-        
         for yolo_fmt in yolo_labels:
             items = yolo_fmt.strip().split()
             yolo_id  = int(items[0])
@@ -43,6 +42,7 @@ if __name__ == '__main__':
             a_box = [box_xmin, box_ymin, box_width, box_height]
             info = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
 
+            #print(info)
             comm.draw_info_on_image(frame, width, height, info, txtfile_cc, 1)
 
         cv2.imshow('TrainImage', frame)

@@ -196,17 +196,17 @@ def get_rect_from_landmarks(id, landmarks, alist:list, margin=0, min_point = 1, 
     else:
         return None
 
-def post_get_detector(thresh=0.3):
+def post_get_detector(thresh=0.5):
     mp_pose = mp.solutions.pose
     mp_pose_cfg = {
         "static_image_mode"         : True,
-        "model_complexity"          : 2,    #0,1,2
+        "model_complexity"          : 0,    #0,1,2
         "enable_segmentation"       : False,
         "min_detection_confidence"  : thresh, #0.5
         "upper_body_only"           : False,
         "enable_segmentation"       : False,
         "smooth_segmentation"       : False,
-        "min_tracking_confidence"   : 0.5,
+        "min_tracking_confidence"   : thresh,
     }
     detector = mp_pose.Pose(mp_pose_cfg)
     return detector
@@ -290,6 +290,10 @@ def draw_info_on_image(image, width, height, info:list, cc=(250, 250, 0), thinkn
     #
     cv2.rectangle(image, a_xywh, cc, thinkness)
     cv2.putText(image, text, (a_xywh[0]+10, a_xywh[1]-10), linefont, 0.5, cc, thinkness)
+
+def draw_seq_on_image(image, seq:int, cc=(0, 0, 250), thinkness=2):
+    text = f'{seq}'
+    cv2.putText(image, text, (10, 20), linefont, 0.5, cc, thinkness)
 
 def info_to_yolo_string(info:list):
     yolo_id_idx, _, _, xywh = info

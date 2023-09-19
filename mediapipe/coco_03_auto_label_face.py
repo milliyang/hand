@@ -12,22 +12,19 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
         "min_detection_confidence" : config['face_detect_thresh'], #0.5
         "model_selection" : 1,      # 1,near,far; 0,near;
     }
-    pose_detection = comm.post_get_detector(config['pose_detect_thresh'])
+    pose_detection   = comm.post_get_detector(config['pose_detect_thresh'])
     object_detection = comm.get_object_detector(config['person_detect_thresh'])
-    hand_detection = comm.get_hand_detector(config['hand_detect_thresh'])
+    hand_detection   = comm.get_hand_detector(config['hand_detect_thresh'])
 
     #cap = cv2.VideoCapture(0)
     with mpFaceDetector.FaceDetection(**mp_face_cfg) as faceDetection:
 
-        for _, imagef in enumerate(imagefiles):
+        for image_seq, imagef in enumerate(imagefiles):
             #print(imagef)
-
             frame = cv2.imread(imagef)
             frame = cv2.resize(frame, comm.YOLO_IMAGE_SIZE)
             height, width, _  = frame.shape
 
-            # Flip the frame horizontally
-            # frame = cv2.flip(frame, 1)
             # cv2 uses BGR and mediapipe uses RGB
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             # Convert it back for displaying after processing
@@ -73,14 +70,13 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
 
             voc_labels = []
             voc_valid_labels = []
-            #print(imagef)
-            #image: /home/leo/myhome/WIDER_train/images/0--Parade/0_Parade_marchingband_1_849.jpg
-            #label: /home/leo/myhome/WIDER_train/labels_face/0--Parade/0_Parade_marchingband_1_849.txt
-            labelfile = imagef.replace("images", "labels_face").replace(".jpg", ".txt")
+            
+            #/home/leo/coco/images/train2017/000000300024.jpg
+            #/home/leo/coco/labels_coco/train2017/000000300024.txt
+            labelfile = imagef.replace("images", "labels_coco").replace(".jpg", ".txt")
+            coco_has_person = 0
 
-            voc_has_person = 0
-
-            if config['wider_parse_labels']:
+            if config['coco_parse_labels']:
                 ff = open(labelfile)
                 voc_labels = ff.readlines()
                 ff.close()
@@ -88,8 +84,12 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                 txtfile_cc = (0, 255, 120)
                 for yolo_fmt in voc_labels:
                     items = yolo_fmt.strip().split()
-                    yolo_id = comm.YOLO_FACE_ID     #always face
-                    voc_has_person+=1
+                    if len(items) <= 0:
+                        continue
+                    yolo_id = int(items[0])
+
+                    if yolo_id == comm.YOLO_HUMAN_ID:
+                        coco_has_person+=1
                     #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
                     #cxcywh:
                     # python.exe  hagrid_to_yolo.py --bbox_format cxcywh
@@ -99,16 +99,16 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                     box_height = float(items[4])
 
                     #ignore face too small
-                    if box_height < 0.02 or box_width < 0.02:
-                        continue
-                    #
+                    #if box_height < 0.02 or box_width < 0.02: continue
+
                     a_box = [box_xmin, box_ymin, box_width, box_height]
                     info = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
+
                     comm.draw_info_on_image(image, width, height, info, txtfile_cc, 1)
                     voc_valid_labels.append(comm.info_to_yolo_string(info))
                 #
 
-            if voc_has_person:
+            if coco_has_person:
                 if config["pose_detect"]:
                     pose_result = pose_detection.process(image_rgb)
                     #comm.pose_draw_pose_landmarks(image, pose_result.pose_landmarks)
@@ -124,8 +124,8 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                             bodys_label.append(comm.info_to_yolo_string(a_info))
 
                 if config['face_detect']:
-                    face_results = faceDetection.process(image_rgb)
                     face_cc = (0, 0, 250)
+                    face_results = faceDetection.process(image_rgb)
                     if (face_results.detections):
                         for _, detection in enumerate(face_results.detections):
                             # mpDraw.draw_detection(image, detection)   #built-in function
@@ -151,58 +151,64 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                                 comm.draw_info_on_image(image, width, height, info, hand_cc, 1)
 
             if config["auto_label"]:
-                new_labelfile = labelfile.replace(".txt", "_mp_hand.txt")
+                new_labelfile = imagef.replace("images", "labels").replace(".jpg", ".txt")
+                if config['coco_parse_labels'] and coco_has_person <= 0:
+                    print(new_labelfile, "[skip][hagrid, no human]")
+                else:
+                    labels = []
+                    labels.extend(voc_valid_labels)
+                    labels.extend(faces_label)
+                    labels.extend(bodys_label)
+                    labels.extend(person_label)
+                    labels.extend(hand_label)
 
-                labels = []
-                labels.extend(voc_valid_labels)
-                labels.extend(faces_label)
-                labels.extend(bodys_label)
-                labels.extend(person_label)
-                labels.extend(hand_label)
-
-                if len(labels) > 0:
-                    file = open(new_labelfile, "w")
-                    for each in labels:
-                        file.write(each)
-                    file.close()
-                    print(new_labelfile)
+                    if len(labels) > 0:
+                        comf.ensure_file_dir(new_labelfile)
+                        file = open(new_labelfile, "w")
+                        for each in labels:
+                            file.write(each)
+                        file.close()
+                        print(new_labelfile)
 
             if config["show_image"]:
-                cv2.imshow('Face detection', image)
+                cv2.imshow('Coco detection', image)
                 wait_time = config["show_image_wait"]
                 if (cv2.waitKey(10) & 0xFF == ord(comm.EXIT_KEY)):
                     break
                 if wait_time > 0:
                     time.sleep(wait_time)
 
+            if image_seq > 10000:
+                print("image_seq:", image_seq, " finish [TOO MUCH IMAGE]")
+                break
+
 if __name__ == '__main__':
-    FACE_THRESH     = 1.00
-    POSE_THRESH     = 0.50
-    HAND_THRESH     = 0.50
-    PERSON_THRESH   = 0.50
+    FACE_THRESH = 0.80
+    POSE_THRESH = 0.90
+    HAND_THRESH = 0.90
 
     config = {
         "show_image"                : False,
         "show_image_wait"           : 0,
-        "face_detect"               : False,
+        "face_detect"               : True,
         "face_detect_thresh"        : FACE_THRESH,
         "pose_detect"               : True,
         "pose_detect_thresh"        : POSE_THRESH,
-        "person_detect"             : True,
-        "person_detect_thresh"      : PERSON_THRESH,
+        "person_detect"             : False,    # no need to detect person, VOC/COCO already has person
+        "person_detect_thresh"      : 0.80,
         "hand_detect"               : True,
         "hand_detect_thresh"        : HAND_THRESH,
         "auto_label"                : True,     #  xxxx.jpg -> xxxx._mp_hand.txt
-        "wider_parse_labels"        : True,     # hagrid read hand label data
+        "coco_parse_labels"         : True,     # hagrid read hand label data
     }
 
-    DEBUG = 0
+    DEBUG = 1
     if DEBUG == 1:
         config["show_image"]            = True
         config["show_image_wait"]       = 1.0
         config["auto_label"]            = True
 
-    vol_image_list = "/home/leo/myhome/WIDER_train/wider_filelists.txt"
-    images = comf.read_list(vol_image_list)
+    coco_image_list = "/home/leo/coco/coco_filelists.txt"
+    images = comf.read_list(coco_image_list)
 
     auto_label_vol_for_yolo(images, config)

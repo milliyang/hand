@@ -3,6 +3,7 @@ import mediapipe as mp
 import os, time
 
 import com_detection as comm
+import com_files as comf
 
 def auto_label_face_for_yolo(imagefiles = [], config = {}):
     mpFaceDetector = mp.solutions.face_detection
@@ -194,28 +195,34 @@ if __name__ == '__main__':
         '/home/leo/hand_fullset/train'
     ]
 
+    # ensure person no incorrect label data
+    HAGRID_PERSON_THRESH = 0.7
+
     config = {
         "show_image"                : False,
         "show_image_wait"           : 0,
         "dirs"                      : image_dir,
-        "dirs_subsample_max"        : 1000,
+        "dirs_subsample_max"        : 500,
         "face_detect"               : True,
         "face_detect_thresh"        : 0.2,
         "pose_detect"               : True,
         "pose_detect_thresh"        : 0.2,
         "person_detect"             : True,
-        "person_detect_thresh"      : 0.30,
+        "person_detect_thresh"      : HAGRID_PERSON_THRESH,
         "auto_label"                : True,     #  xxxx.jpg -> xxxx._mp_hand.txt
         "hagrid_parse_labels"       : True,     # hagrid read hand label data
         "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files
     }
 
-    DEBUG = 1
+    DEBUG = 0
     if DEBUG == 1:
         config["show_image"]                = True
         config["show_image_wait"]           = 1
-        config["dirs_subsample_max"]        = 5
-        config["auto_label"]                = False
+        #config["dirs_subsample_max"]        = 5
+        #config["auto_label"]                = False
+        #config["hagrid_parse_labels"]       = False
 
     images = comm.get_all_image_in_dir(config["dirs"], config["dirs_subsample_max"])
+    #images = comf.read_filelist("./output/exclude_hagrid_filelist.txt")
+
     auto_label_face_for_yolo(images, config)
