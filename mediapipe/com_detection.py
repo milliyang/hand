@@ -7,6 +7,8 @@ from mediapipe.tasks.python import vision
 EXIT_KEY_Q = 'q'
 EXIT_KEY = 'q'
 
+YOLO_OBJECT_MIN_SIZE = 0.03
+
 file_ext = ['jpg', 'jpeg']
 YOLO_IMAGE_SIZE = (416,416)
 
@@ -254,8 +256,12 @@ def body_info_from_landmark(landmarks, hotfix_y_max = 1.0):
     #if hand_right: rects.append(hand_right)
     #if foot_left: rects.append(foot_left)
     #if foot_right: rects.append(foot_right)
-    if body: rects.append(body)
-    if leg: rects.append(leg)
+    if body:
+        if body[3][2] > YOLO_OBJECT_MIN_SIZE and body[3][3] > YOLO_OBJECT_MIN_SIZE:
+            rects.append(body)
+    if leg:
+        if leg[3][2] > YOLO_OBJECT_MIN_SIZE and leg[3][3] > YOLO_OBJECT_MIN_SIZE:
+            rects.append(leg)
     #print(rects)
     return rects
 

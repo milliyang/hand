@@ -1,6 +1,5 @@
 ### ubuntu
-```rust
-
+```bash
 /etc/apt/sources.list
 
 deb http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
@@ -58,5 +57,9 @@ make install
 
 ./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe_yolo3/imvt20_yolo2.caffemodel leo.png
 ./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel leo.png
+
+./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel /dev/video0
+
+./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel ~/Downloads/wudao/multi.p3.01.mp4 
 
 ```

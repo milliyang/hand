@@ -177,9 +177,9 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
 
 if __name__ == '__main__':
     FACE_THRESH     = 1.00
-    POSE_THRESH     = 0.50
-    HAND_THRESH     = 0.50
-    PERSON_THRESH   = 0.50
+    POSE_THRESH     = 0.80
+    HAND_THRESH     = 0.80
+    PERSON_THRESH   = 0.60
 
     config = {
         "show_image"                : False,
@@ -196,7 +196,7 @@ if __name__ == '__main__':
         "wider_parse_labels"        : True,     # hagrid read hand label data
     }
 
-    DEBUG = 0
+    DEBUG = 1
     if DEBUG == 1:
         config["show_image"]            = True
         config["show_image_wait"]       = 1.0

@@ -87,9 +87,6 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                     if len(items) <= 0:
                         continue
                     yolo_id = int(items[0])
-
-                    if yolo_id == comm.YOLO_HUMAN_ID:
-                        coco_has_person+=1
                     #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
                     #cxcywh:
                     # python.exe  hagrid_to_yolo.py --bbox_format cxcywh
@@ -99,10 +96,14 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                     box_height = float(items[4])
 
                     #ignore face too small
-                    #if box_height < 0.02 or box_width < 0.02: continue
+                    if box_height < comm.YOLO_OBJECT_MIN_SIZE or box_width < comm.YOLO_OBJECT_MIN_SIZE: continue
+
+                    if yolo_id == comm.YOLO_HUMAN_ID:
+                        coco_has_person+=1
 
                     a_box = [box_xmin, box_ymin, box_width, box_height]
-                    info = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
+                    info  = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
+                    #print(info)
 
                     comm.draw_info_on_image(image, width, height, info, txtfile_cc, 1)
                     voc_valid_labels.append(comm.info_to_yolo_string(info))
@@ -151,7 +152,8 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                                 comm.draw_info_on_image(image, width, height, info, hand_cc, 1)
 
             if config["auto_label"]:
-                new_labelfile = imagef.replace("images", "labels").replace(".jpg", ".txt")
+                #new_labelfile = imagef.replace("images", "labels").replace(".jpg", ".txt")
+                new_labelfile = imagef.replace("images", "labels_2").replace(".jpg", ".txt")
                 if config['coco_parse_labels'] and coco_has_person <= 0:
                     print(new_labelfile, "[skip][hagrid, no human]")
                 else:
@@ -178,14 +180,14 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                 if wait_time > 0:
                     time.sleep(wait_time)
 
-            if image_seq > 10000:
+            if image_seq > 12000:
                 print("image_seq:", image_seq, " finish [TOO MUCH IMAGE]")
                 break
 
 if __name__ == '__main__':
-    FACE_THRESH = 0.80
+    FACE_THRESH = 0.75
     POSE_THRESH = 0.90
-    HAND_THRESH = 0.90
+    HAND_THRESH = 0.80
 
     config = {
         "show_image"                : False,
@@ -202,10 +204,10 @@ if __name__ == '__main__':
         "coco_parse_labels"         : True,     # hagrid read hand label data
     }
 
-    DEBUG = 1
+    DEBUG = 0
     if DEBUG == 1:
         config["show_image"]            = True
-        config["show_image_wait"]       = 1.0
+        config["show_image_wait"]       = 0.5
         config["auto_label"]            = True
 
     coco_image_list = "/home/leo/coco/coco_filelists.txt"
