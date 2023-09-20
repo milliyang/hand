@@ -5,9 +5,8 @@ import os, time
 import com_files as comf
 
 if __name__ == '__main__':
-    path  = "/home/leo/coco/labels"
-    all_files = comf.get_all_files_in_dir([path])
-    label_files = comf.select_file_with_pattern(all_files, ['txt'])
+    label_files = comf.get_files_in_current_dir("/home/leo/coco/labels/train2017")
+    #label_files = comf.get_files_in_current_dir("/home/leo/coco/labels/val2017")
 
     # ensure image and label in the same dir:
     image_files_with_label = []

@@ -70,9 +70,12 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
 
             voc_labels = []
             voc_valid_labels = []
-            
+
             #/home/leo/coco/images/train2017/000000300024.jpg
             #/home/leo/coco/labels_coco/train2017/000000300024.txt
+            #or
+            #/home/leo/coco/images/val2017/000000300024.jpg
+            #/home/leo/coco/labels_coco/val2017/000000300024.txt
             labelfile = imagef.replace("images", "labels_coco").replace(".jpg", ".txt")
             coco_has_person = 0
 
@@ -152,8 +155,7 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                                 comm.draw_info_on_image(image, width, height, info, hand_cc, 1)
 
             if config["auto_label"]:
-                #new_labelfile = imagef.replace("images", "labels").replace(".jpg", ".txt")
-                new_labelfile = imagef.replace("images", "labels_2").replace(".jpg", ".txt")
+                new_labelfile = imagef.replace("images", "labels").replace(".jpg", ".txt")
                 if config['coco_parse_labels'] and coco_has_person <= 0:
                     print(new_labelfile, "[skip][hagrid, no human]")
                 else:
@@ -210,7 +212,8 @@ if __name__ == '__main__':
         config["show_image_wait"]       = 0.5
         config["auto_label"]            = True
 
-    coco_image_list = "/home/leo/coco/coco_filelists.txt"
+    #coco_image_list = "/home/leo/coco/coco_filelists.txt"
+    coco_image_list = "/home/leo/coco/coco_val2017_filelists.txt"
     images = comf.read_list(coco_image_list)
 
     auto_label_vol_for_yolo(images, config)

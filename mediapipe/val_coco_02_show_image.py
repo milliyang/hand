@@ -5,22 +5,18 @@ import com_detection as comm
 import com_files as comf
 
 if __name__ == '__main__':
-
-    #COCO_PATH = "/home/leo/coco/labels_coco/train2017"
-    COCO_PATH = "/home/leo/coco/labels_coco/val2017"
-
-    #labels_files = comf.get_all_files_in_dir([COCO_PATH])
-    labels_files = comf.get_files_in_current_dir(COCO_PATH)
+    infile = "/home/leo/coco/coco_val2017_filelists.txt"
+    imagefiles = comf.read_filelist(infile)
 
     img_seq = 0
     running = True
 
     while running:
         if img_seq < 0: img_seq = 0
-        if img_seq >= len(labels_files): break
+        if img_seq >= len(imagefiles): break
 
-        labelf = labels_files[img_seq]
-        imagef = labelf.replace("labels_coco", "images").replace(".txt", ".jpg")
+        imagef = imagefiles[img_seq]
+        labelf = imagef.replace("images", "labels_yolo").replace(".jpg", ".txt")
         print(imagef)
         frame = cv2.imread(imagef)
         frame = cv2.resize(frame, comm.YOLO_IMAGE_SIZE)
@@ -40,7 +36,9 @@ if __name__ == '__main__':
             if len(items) <= 0:
                 continue
             yolo_id  = int(items[0])
-            #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
+            prob = float(items[1])
+            #['0', '999.999' '0.45230302', '0.2694478', '0.05382926', '0.11273142']
+            items = items[1:]
 
             #cxcywh:
             # python.exe  hagrid_to_yolo.py --bbox_format cxcywh
@@ -50,7 +48,7 @@ if __name__ == '__main__':
             box_height = float(items[4])
             #
             a_box = [box_xmin, box_ymin, box_width, box_height]
-            info = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
+            info = [yolo_id, comm.id_to_names(yolo_id), prob, a_box]
             print(info)
 
             comm.draw_info_on_image(frame, width, height, info, txtfile_cc, 1)

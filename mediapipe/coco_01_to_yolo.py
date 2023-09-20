@@ -21,8 +21,8 @@ COCO_PATH = "/home/leo/coco"
 # └── val2017
 
 dataDir=COCO_PATH
-#dataType='val2017'
-dataType='train2017'
+dataType='val2017'
+#dataType='train2017'
 annFile='{}/annotations/instances_{}.json'.format(dataDir,dataType)
 
 # initialize COCO api for instance annotations
@@ -85,6 +85,9 @@ def coco_cv_show(catIds, imgIds):
             a_box = ann['bbox']
             a_box = [a_box[0]/width_ori, a_box[1]/height_ori, a_box[2]/width_ori, a_box[3]/height_ori]
 
+            if a_box[2] < comm.YOLO_OBJECT_MIN_SIZE or a_box[3] < comm.YOLO_OBJECT_MIN_SIZE:
+                continue
+
             info  = [coco_id, coco_name, 1.0, a_box]
             comm.draw_info_on_image(frame, width, height, info, txtfile_cc, 1)
 
@@ -104,7 +107,7 @@ def coco_cv_show(catIds, imgIds):
         #cv2.imshow('Coco', frame)
         #if (cv2.waitKey(1000*3) & 0xFF == ord(comm.EXIT_KEY)): break
 
-    coco_image_list = os.path.join(COCO_PATH, "coco_filelists.txt")
+    coco_image_list = os.path.join(COCO_PATH, f"coco_{dataType}_filelists.txt")
     comf.write_list_to_file(coco_images, coco_image_list)
 
 coco_show_categories(coco)
