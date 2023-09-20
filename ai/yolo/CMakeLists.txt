@@ -102,10 +102,11 @@ set(CAFFELIB caffe caffeproto)
 
 set(ALL_LIB ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
 
-
-add_executable(yolo ${SRC})
+add_executable(yolo "${ROOT_DIR}/main/YoTracker.cpp" ${SRC})
 target_link_libraries(yolo ${ALL_LIB})
 
+add_executable(detect "${ROOT_DIR}/main/YoloDetecter.cpp" ${SRC})
+target_link_libraries(detect ${ALL_LIB})
 
 # file(GLOB SIFT_SRC "${ROOT_DIR}/sift/*.cpp")
 # add_executable(sift ${SIFT_SRC})

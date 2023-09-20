@@ -1,8 +1,11 @@
 #include "proxy_reader.h"
+#include <iostream>
+#include <fstream>
 
 ProxyReader::ProxyReader()
 {
     stream_ = false;
+    seq_ = 0;
 }
 
 bool ProxyReader::open(std::string &file)
@@ -20,6 +23,16 @@ bool ProxyReader::open(std::string &file)
     } else if (file.find(".yuv") != std::string::npos) {
         source_ = SOURCE_YUV;
         stream_ = true;
+    } else if (file.find(".txt") != std::string::npos) {
+        source_ = SOURCE_TXT;
+        stream_ = true;
+
+        std::ifstream fin(file);
+        std::string s;
+        while (getline(fin,s)) {
+            v_str_.push_back(s);
+            //std::cout << "Read from file: " << s << std::endl;
+        }
     } else if (file.find("tcp") != std::string::npos) {
         //"tcp://192.168.9.6:5556"
         source_ = SOURCE_NET;
@@ -31,6 +44,9 @@ bool ProxyReader::open(std::string &file)
     }
 
     if (source_ == SOURCE_YUV) {
+        yuvReader_.Init(file, 416, 416);
+        //yuvReader_.Init(file, 352, 288);
+    } else if (source_ == SOURCE_TXT) {
         yuvReader_.Init(file, 416, 416);
         //yuvReader_.Init(file, 352, 288);
     } else if (source_ == SOURCE_NET) {
@@ -54,6 +70,19 @@ void ProxyReader::read(cv::Mat &frame)
         yuvReader_.Read(frame);
     } else if (source_ == SOURCE_NET) {
         imvt_zmq_sub_yuv_recv(frame);
+    } else if (source_ == SOURCE_TXT) {
+        if (seq_ >= v_str_.size()) {
+            frame = cv::Mat();
+            return;
+        }
+        cvCapture_.open(v_str_[seq_]);
+        if (!cvCapture_.isOpened()) {
+            frame = cv::Mat();
+            return;
+        }
+        cvCapture_ >> frame;
+        cvCapture_.release();
+        seq_++;
     } else {
         cvCapture_ >> frame;
     }
@@ -64,6 +93,10 @@ void ProxyReader::close(void)
     imvt_zmq_sub_yuv_deinit();
     imvt_zmq_sub_deinit();
 
+    if (source_ == SOURCE_TXT) {
+        return;
+    }
+
     // When everything done, release the video capture object
     cvCapture_.release();
 }
@@ -71,4 +104,32 @@ void ProxyReader::close(void)
 bool ProxyReader::isStream(void)
 {
     return stream_;
+}
+
+bool ProxyReader::isFilelist(void)
+{
+    return v_str_.size() > 0;
+}
+
+void ProxyReader::resetReadIndex(int index)
+{
+    if (isFilelist()) {
+        if (index > 0) {
+            int max_idx = (int)v_str_.size()-1;
+            seq_ = std::max(index, 0);
+            seq_ = std::min(index, max_idx);
+        } else {
+            seq_ -=2;
+            seq_ = std::max(seq_, 0);
+        }
+    }
+}
+
+std::string ProxyReader::peekFile(void)
+{
+    if (seq_ < v_str_.size()) {
+        return v_str_.at(seq_);
+    } else {
+        return std::string("");
+    }
 }

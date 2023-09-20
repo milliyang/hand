@@ -210,7 +210,8 @@ std::vector<YoloBox> selected_person_face_hand_class(std::vector<YoloBox> &yolo_
         //SORT_CLS_HUMAN
         //SORT_CLS_FACE
         //SORT_CLS_HAND
-        if (yolo_boxs[i].class_idx == s_tracking_class && yolo_boxs[i].confidence >= 0.15f) {
+        //thresh
+        if (yolo_boxs[i].class_idx == s_tracking_class && yolo_boxs[i].confidence >= 0.01f) {
             selected.push_back(yolo_boxs[i]);
         }
     }
@@ -227,7 +228,7 @@ int main(int argc, char **argv)
     int pause_frame_to_process = 0; //
     int frame_seq = 0;
 
-    if (argc <= 3) {
+    if (argc < 4) {
         std::cerr << "Usage: "
                   << argv[0] << " deploy.prototxt network.caffemodel xxx.mov" << std::endl
                   << argv[0] << " deploy.prototxt network.caffemodel /dev/video0" << std::endl;

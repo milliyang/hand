@@ -18,6 +18,7 @@ class ProxyReader
         SOURCE_MOV = (1),
         SOURCE_YUV = (2),
         SOURCE_NET = (3),
+        SOURCE_TXT = (4),   //filelist.txt
     };
 
 public:
@@ -35,10 +36,19 @@ public:
 
     bool isStream(void);
 
+    /*filelist only*/
+    bool isFilelist(void);
+    void resetReadIndex(int index);
+    std::string peekFile(void);
+    /*filelist only*/
+
 private:
 
     YuvReader yuvReader_;
     cv::VideoCapture cvCapture_;
     int source_;
     bool stream_;
+
+    std::vector<std::string> v_str_;
+    int seq_;
 };
