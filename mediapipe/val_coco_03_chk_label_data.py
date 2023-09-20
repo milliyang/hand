@@ -31,11 +31,13 @@ def copy_and_convert_cxcywh_xyxy_file(source, target):
         right  = float(bbox[0]) + float(bbox[2])/2.0
         bottom = float(bbox[1]) + float(bbox[3])/2.0
 
+        id_name = comm.IMVT_CLS_NAMES[int(id)]
+
         info = ""
         if len(items) == 5:
-            info = f"{id} {left} {top} {right} {bottom}"
+            info = f"{id_name} {left} {top} {right} {bottom}"
         elif len(items) == 6:
-            info = f"{id} {prob} {left} {top} {right} {bottom}"
+            info = f"{id_name} {prob} {left} {top} {right} {bottom}"
 
         fmt_line.append(info)
 
