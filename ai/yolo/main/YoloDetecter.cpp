@@ -23,6 +23,8 @@ using namespace std;
 // ./detect yolov2.prototxt yolov2.caffemodel tcp://192.168.9.6:5556
 // ./detect darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel ~/coco/coco_val2017_filelists.txt
 
+// Batch generate xxxx.jpg.yolo.txt detection result for mAP
+//  ./detect darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel ~/coco/coco_val2017_filelists.txt 1
 void simple_draw_yolo_result(cv::Mat frame, int seq, std::vector<YoloBox> &yolo_boxs)
 {
     cv::Rect_<float> box;

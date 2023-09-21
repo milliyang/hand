@@ -4,7 +4,6 @@ import os, time
 
 import com_files as comf
 
-
 def collect_yolo_detect_result(infile):
     imagefiles = comf.read_filelist(infile)
 

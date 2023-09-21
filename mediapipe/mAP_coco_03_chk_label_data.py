@@ -45,6 +45,9 @@ def copy_and_convert_cxcywh_xyxy_file(source, target):
     comf.write_list(target, fmt_line)
 
 if __name__ == '__main__':
+    #remove old data
+    files = comf.remove_all_files_in_dir(["/home/leo/coco/val_gt_labels", "/home/leo/coco/val_yolo_labels"])
+
     yolo_labels = comf.get_files_in_current_dir("/home/leo/coco/labels_yolo/val2017")
     true_labels = comf.get_files_in_current_dir("/home/leo/coco/labels/val2017")
 

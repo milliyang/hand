@@ -24,6 +24,11 @@ def get_all_files_in_dir(dir_list =[]):
                 fullset_files.append(path)
     return fullset_files
 
+def remove_all_files_in_dir(dir_list =[]):
+    files = get_all_files_in_dir(dir_list)
+    for each in files:
+        os.remove(each)
+
 def select_file_with_pattern(files:list, pattern = ["mp_hand"]):
     select_files = []
     for each in files:
