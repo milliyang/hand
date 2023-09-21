@@ -109,7 +109,7 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                     a_box = [box_xmin, box_ymin, box_width, box_height]
                     info = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
                     comm.draw_info_on_image(image, width, height, info, txtfile_cc, 1)
-                    voc_valid_labels.append(comm.info_to_yolo_string(info))   
+                    voc_valid_labels.append(comm.info_to_yolo_string(info))
                 #
 
             if voc_has_person:
@@ -164,10 +164,8 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                 labels.extend(hand_label)
 
                 if len(labels) > 0:
-                    file = open(new_labelfile, "w")
-                    for each in labels:
-                        file.write(each)
-                    file.close()
+                    comf.ensure_file_dir(new_labelfile)
+                    comf.write_list_to_file(labels, new_labelfile)
                     print(new_labelfile)
 
             if config["show_image"]:

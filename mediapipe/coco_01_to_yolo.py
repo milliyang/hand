@@ -45,6 +45,38 @@ def coco_get_image_ids_with_cat(cats = ['person']):
     print('len:', len(imgIds))
     return catIds, imgIds
 
+def coco_get_face_info_from_yoloface_fast_predictions(imagef, width, height):
+    #show coco yoloface_fast_predictions
+
+    #"/home/leo/coco/images/val2017/000000036936.jpg"
+    #"/home/leo/coco/yoloface_fast_predictions/val2017/xxxx.csv"
+    cocoface_label = imagef.replace("images", "yoloface_fast_predictions") + ".csv"
+    faces = comm.read_filelist(cocoface_label)
+    infos = []
+    for face in faces:
+        items = face.split(",")
+        if (len(items) != 6):
+            continue
+        #print(items[1:])
+        #'/data/coco/val2017/000000036936.jpg,0.9891075,104.2295,414.4043,148.12671,440.77728'
+        ppath, prob, y0, x0, y1, x1 = items
+        x0 = float(x0) / width
+        y0 = float(y0) / height
+        x1 = float(x1) / width
+        y1 = float(y1) / height
+        w = x1-x0
+        h = y1-y0
+        a_box = [x0, y0, x1-x0, y1-y0]
+
+        yolo_id = comm.YOLO_FACE_ID
+        info = [yolo_id, comm.id_to_names(yolo_id), float(prob), a_box]
+        if a_box[2] < 0.02 or a_box[2] < 0.02:
+            continue
+
+        infos.append(info)
+
+    return infos
+
 def coco_cv_show(catIds, imgIds):
 
     txtfile_cc = (0, 255, 120)
@@ -61,8 +93,6 @@ def coco_cv_show(catIds, imgIds):
 
         frame = cv2.imread(imagef)
         height_ori, width_ori, _  = frame.shape
-
-        #frame = cv2.flip(frame, 1)
 
         frame = cv2.resize(frame, comm.YOLO_IMAGE_SIZE)
         height, width, _  = frame.shape
@@ -97,11 +127,17 @@ def coco_cv_show(catIds, imgIds):
                 info  = [yolo_id, coco_name, 1.0, a_box]
                 object_labels.append(comm.info_to_yolo_string(info))
 
+        face_infos = coco_get_face_info_from_yoloface_fast_predictions(imagef, width_ori, height_ori)
+        if len(face_infos) > 0:
+            for info in face_infos:
+                object_labels.append(comm.info_to_yolo_string(info))
+
         if len(object_labels) > 0:
-            labelf = imagef.replace("images", "labels_coco").replace(".jpg", ".txt")
+            labelf = imagef.replace("images", "labels_coco2").replace(".jpg", ".txt")
             comf.ensure_file_dir(labelf)
             comf.write_list(labelf, object_labels)
             print('labelf', labelf)
+            print('object_labels', object_labels)
             coco_images.append(imagef)
 
         #cv2.imshow('Coco', frame)

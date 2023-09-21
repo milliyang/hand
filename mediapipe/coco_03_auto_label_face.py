@@ -165,14 +165,9 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                     labels.extend(bodys_label)
                     labels.extend(person_label)
                     labels.extend(hand_label)
-
                     if len(labels) > 0:
                         comf.ensure_file_dir(new_labelfile)
-                        file = open(new_labelfile, "w")
-                        for each in labels:
-                            file.write(each)
-                        file.close()
-                        print(new_labelfile)
+                        comf.write_list_to_file(labels, new_labelfile)
 
             if config["show_image"]:
                 cv2.imshow('Coco detection', image)
@@ -206,11 +201,11 @@ if __name__ == '__main__':
         "coco_parse_labels"         : True,     # hagrid read hand label data
     }
 
-    DEBUG = 0
+    DEBUG = 1
     if DEBUG == 1:
         config["show_image"]            = True
         config["show_image_wait"]       = 0.5
-        config["auto_label"]            = True
+        config["auto_label"]            = False
 
     #coco_image_list = "/home/leo/coco/coco_filelists.txt"
     coco_image_list = "/home/leo/coco/coco_val2017_filelists.txt"

@@ -166,19 +166,17 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     print(new_labelfile, "[skip][hagrid, no human]")
                 else:
                     new_labelfile = labelfile.replace(".txt", "_mp_hand.txt")
-                    file = open(new_labelfile, "w")
-                    for each in hagrid_hand_labels:
-                        file.write(each)
-                    for each in faces_label:
-                        file.write(each)
-                    for each in bodys_label:
-                        file.write(each)
-                    for each in person_label:
-                        file.write(each)
-                    for each in hand_gesture_label:
-                        file.write(each)
-                    file.close()
-                    print(new_labelfile)
+
+                    labels = []
+                    labels.extend(hagrid_hand_labels)
+                    labels.extend(faces_label)
+                    labels.extend(bodys_label)
+                    labels.extend(person_label)
+                    labels.extend(hand_gesture_label)
+                    if len(labels) > 0:
+                        comf.ensure_file_dir(new_labelfile)
+                        comf.write_list_to_file(labels, new_labelfile)
+                        print(new_labelfile)
 
             if config["show_image"]:
                 cv2.imshow('Face detection', image)

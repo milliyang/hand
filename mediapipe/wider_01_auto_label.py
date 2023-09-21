@@ -161,11 +161,8 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                 labels.extend(hand_label)
 
                 if len(labels) > 0:
-                    file = open(new_labelfile, "w")
-                    for each in labels:
-                        file.write(each)
-                    file.close()
-                    print(new_labelfile)
+                    comf.ensure_file_dir(new_labelfile)
+                    comf.write_list_to_file(labels, new_labelfile)
 
             if config["show_image"]:
                 cv2.imshow('Face detection', image)

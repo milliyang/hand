@@ -305,7 +305,7 @@ def info_to_yolo_string(info:list):
     yolo_id_idx, _, _, xywh = info
     #output yolo bbox fmt:  x,y,w,h -> cx,xy,w,h
     yolo_cxcywh = (xywh[0]+xywh[2]/2.0, xywh[1]+xywh[3]/2.0, xywh[2], xywh[3])
-    yolo_string = f"{yolo_id_idx} {yolo_cxcywh[0]} {yolo_cxcywh[1]} {yolo_cxcywh[2]} {yolo_cxcywh[3]} \n"
+    yolo_string = f"{yolo_id_idx} {yolo_cxcywh[0]} {yolo_cxcywh[1]} {yolo_cxcywh[2]} {yolo_cxcywh[3]}"
     return yolo_string
 
 def hand_get_rect_from_landmarks(id, landmarks, margin=0.015, min_point = 1):
