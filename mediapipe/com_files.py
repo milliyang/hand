@@ -2,13 +2,13 @@ import cv2
 import os, time, sys
 import shutil
 
-def get_files_in_current_dir(dir):
-    if not os.path.isdir(dir):
-        return None
-    files = os.listdir(dir)
+def get_files_in_current_dir(dir_path):
+    if not os.path.isdir(dir_path):
+        return []
+    files = os.listdir(dir_path)
     select_files = []
     for onefile in files:
-        select_files.append(os.path.join(dir, onefile))
+        select_files.append(os.path.join(dir_path, onefile))
     return select_files
 
 def get_all_files_in_dir(dir_list =[]):
@@ -26,6 +26,11 @@ def get_all_files_in_dir(dir_list =[]):
 
 def remove_all_files_in_dir(dir_list =[]):
     files = get_all_files_in_dir(dir_list)
+    for each in files:
+        os.remove(each)
+
+def remove_all_files_in_cur_dir(dir_path):
+    files = get_files_in_current_dir(dir_path)
     for each in files:
         os.remove(each)
 

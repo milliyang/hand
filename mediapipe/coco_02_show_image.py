@@ -4,15 +4,33 @@ import os, time
 import com_detection as comm
 import com_files as comf
 
-if __name__ == '__main__':
+def calc_iou(box1, box2):
+    """
+    :param box1: = [xmin1, ymin1, xmax1, ymax1]
+    :param box2: = [xmin2, ymin2, xmax2, ymax2]
+    :return: 
+    """
+    xmin1, ymin1, xmax1, ymax1 = box1
+    xmin2, ymin2, xmax2, ymax2 = box2
+    #
+    s1 = (xmax1 - xmin1) * (ymax1 - ymin1)  # b1 area
+    s2 = (xmax2 - xmin2) * (ymax2 - ymin2)  # b2 area
+ 
+    #
+    xmin = max(xmin1, xmin2)
+    ymin = max(ymin1, ymin2)
+    xmax = min(xmax1, xmax2)
+    ymax = min(ymax1, ymax2)
+ 
+    w = max(0, xmax - xmin)
+    h = max(0, ymax - ymin)
+    a1 = w * h  # C∩G
+    a2 = s1 + s2 - a1
+    iou = a1 / a2 #iou = a1/ (s1 + s2 - a1)
+    return iou
 
-    coco_image_list = "/home/leo/coco/coco_val2017_filelists.txt"
-    images = comf.read_list(coco_image_list)
-    labels_files = []
-    for img in images:
-        label = img.replace("images", "labels_coco").replace(".jpg", ".txt")
-        labels_files.append(label)
 
+def show_image(labels_files, labels_prefix="labels_coco"):
     img_seq = 0
     running = True
 
@@ -21,26 +39,26 @@ if __name__ == '__main__':
         if img_seq >= len(labels_files): break
 
         labelf = labels_files[img_seq]
-        imagef = labelf.replace("labels_coco", "images").replace(".txt", ".jpg")
-        print(imagef)
+        imagef = labelf.replace(labels_prefix, "images").replace(".txt", ".jpg")
+        #print(imagef)
         frame = cv2.imread(imagef)
         h_ori, w_ori, _  = frame.shape
         IMG_SIZE = 2*416
         frame = cv2.resize(frame, (IMG_SIZE,IMG_SIZE))
         height, width, _  = frame.shape
-  
+
         ff = open(labelf)
         yolo_labels = ff.readlines()
         ff.close()
 
         #show coco yoloface_fast_predictions
-        if True:
+        if False:
             #"/home/leo/coco/images/val2017/000000036936.jpg"
             #"/home/leo/coco/yoloface_fast_predictions/val2017/xxxx.csv"
             cocoface_label = imagef.replace("images", "yoloface_fast_predictions") + ".csv"
-            faces = comm.read_filelist(cocoface_label)
-            face_cc = (250, 0, 0)
-            for face in faces:
+            facesline = comm.read_filelist(cocoface_label)
+            facebox = []
+            for face in facesline:
                 items = face.split(",")
                 if (len(items) != 6):
                     continue
@@ -51,26 +69,42 @@ if __name__ == '__main__':
                 y0 = float(y0) / h_ori
                 x1 = float(x1) / w_ori
                 y1 = float(y1) / h_ori
+                prob = float(prob)
+                w = x1 - x0
+                h = y1 - y0
+                #if w < comm.YOLO_FACE_MIN_SIZE or h < comm.YOLO_FACE_MIN_SIZE: continue
+                #if w < comm.YOLO_FACE_MIN_SIZE or h < comm.YOLO_FACE_MIN_SIZE: continue
+                facebox.append([prob,x0,y0,x1,y1])
+
+            if len(facebox) > 1:
+                idx_used = set()
+                for ii in range(0, len(facebox)-1):
+                    box0 = facebox[ii][1:]
+                    for jj in range(ii+1, len(facebox)):
+                        box1 = facebox[jj][1:]
+                        iou = calc_iou(box0, box1)
+                        print(ii, jj, box0, box1, 'iou:', iou)
+
+            for face in facebox:
+                prob,x0,y0,x1,y1 = face
+
                 w = x1-x0
                 h = y1-y0
-                xywh = [x0, y0, x1-x0, y1-y0]
-                #rect_xywh = [int(xywh[0]*IMG_SIZE), int(xywh[1]*IMG_SIZE), int(xywh[2]*IMG_SIZE), int(xywh[3]*IMG_SIZE)]
-                #cv2.rectangle(frame, rect_xywh, face_cc, 1)
+                a_box = [x0, y0, w, h]
 
                 yolo_id = 1
-                a_box = xywh
-                info = [yolo_id, comm.id_to_names(yolo_id), float(prob), a_box]
-                if a_box[2] < 0.02 or a_box[2] < 0.02:
-                    continue
+                info = [yolo_id, comm.id_to_names(yolo_id), prob, a_box]
 
                 print(info)
-                comm.draw_info_on_image(frame, width, height, info, face_cc, 1)
+                comm.draw_info_on_image(frame, width, height, info, comm.CC_FACE, 1)
+
+        #yolo_labels = []
+        w_over_h = False
 
         # Leo:
         #  1. convert hand -> to number and hand
         #  2. if two hand found, the hand closer to face use number (because we check all the sample image)
-        txtfile_cc = (0, 255, 120)
-        
+        cc = comm.CC_TXTFILE
         for yolo_fmt in yolo_labels:
             items = yolo_fmt.strip().split()
             if len(items) <= 0:
@@ -87,8 +121,21 @@ if __name__ == '__main__':
             #
             a_box = [box_xmin, box_ymin, box_width, box_height]
             info = [yolo_id, comm.id_to_names(yolo_id), 1.0, a_box]
-            print(info)
-            comm.draw_info_on_image(frame, width, height, info, txtfile_cc, 1)
+
+            wh_ratio = box_width / box_height
+            if yolo_id == comm.YOLO_FACE_ID and wh_ratio > 1.1:
+                print(imagef, "w>h", info, wh_ratio)
+                w_over_h = True
+
+            #print(info)
+            if yolo_id == comm.YOLO_FACE_ID:
+                cc = comm.CC_FACE
+            comm.draw_info_on_image(frame, width, height, info, cc, 1)
+
+        #debug
+        if not w_over_h:
+            img_seq+=1
+            continue
 
         cv2.imshow('TrainImage', frame)
 
@@ -105,3 +152,15 @@ if __name__ == '__main__':
                 print("--", imagef)
                 img_seq-=1
                 break
+
+if __name__ == '__main__':
+    COCO_TYPE='train2017'
+    LABELS_PREFIX = "labels_coco"
+    coco_image_list = f"/home/leo/coco/coco_{COCO_TYPE}_filelists.txt"
+    images = comf.read_list(coco_image_list)
+    labels_files = []
+    for img in images:
+        label = img.replace("images", LABELS_PREFIX).replace(".jpg", ".txt")
+        labels_files.append(label)
+
+    show_image(labels_files, LABELS_PREFIX)

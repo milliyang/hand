@@ -157,7 +157,7 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
             if config["auto_label"]:
                 new_labelfile = imagef.replace("images", "labels").replace(".jpg", ".txt")
                 if config['coco_parse_labels'] and coco_has_person <= 0:
-                    print(new_labelfile, "[skip][hagrid, no human]")
+                    print(new_labelfile, "[skip][no human]")
                 else:
                     labels = []
                     labels.extend(voc_valid_labels)
@@ -177,7 +177,7 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                 if wait_time > 0:
                     time.sleep(wait_time)
 
-            if image_seq > 12000:
+            if image_seq > config["max_image_num"]:
                 print("image_seq:", image_seq, " finish [TOO MUCH IMAGE]")
                 break
 
@@ -189,26 +189,34 @@ if __name__ == '__main__':
     config = {
         "show_image"                : False,
         "show_image_wait"           : 0,
-        "face_detect"               : True,
+        "face_detect"               : False,        # no need to detect face, we use COCO.face.yolo.project labels
         "face_detect_thresh"        : FACE_THRESH,
         "pose_detect"               : True,
         "pose_detect_thresh"        : POSE_THRESH,
-        "person_detect"             : False,    # no need to detect person, VOC/COCO already has person
+        "person_detect"             : False,        # no need to detect person, VOC/COCO already has person
         "person_detect_thresh"      : 0.80,
         "hand_detect"               : True,
         "hand_detect_thresh"        : HAND_THRESH,
         "auto_label"                : True,     #  xxxx.jpg -> xxxx._mp_hand.txt
         "coco_parse_labels"         : True,     # hagrid read hand label data
+        "max_image_num"             : 15000,
     }
 
-    DEBUG = 1
+    DEBUG = 0
     if DEBUG == 1:
         config["show_image"]            = True
         config["show_image_wait"]       = 0.5
         config["auto_label"]            = False
 
     #coco_image_list = "/home/leo/coco/coco_filelists.txt"
-    coco_image_list = "/home/leo/coco/coco_val2017_filelists.txt"
+    COCO_TYPE = "train2017"
+    #COCO_TYPE = "val2017"
+
+    coco_image_list = f"/home/leo/coco/coco_{COCO_TYPE}_filelists.txt"
     images = comf.read_list(coco_image_list)
+
+    #clear dir
+    old_labels = f"/home/leo/coco/labels/{COCO_TYPE}"
+    comf.remove_all_files_in_cur_dir(old_labels)
 
     auto_label_vol_for_yolo(images, config)

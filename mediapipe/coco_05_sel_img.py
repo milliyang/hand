@@ -5,22 +5,14 @@ import com_detection as comm
 import com_files as comf
 import sys
 
-if __name__ == '__main__':
-    input_file = "./output/sel_coco_filelist.txt"
-    output_file = "./output/exclude_coco_filelist.txt"
-
-    img_files = comf.read_filelist(input_file)
+def select_image_files(images_files, output_file, img_seq = 0):
     txtfile_cc = (0, 255, 120)
-
     running = True
     image_files_exclude = []
-    img_seq = 0
-    if len(sys.argv) >= 2:
-        img_seq = int(sys.argv[1])
 
-    while running and img_seq < len(img_files):
+    while running and img_seq < len(images_files):
         img_seq = max(img_seq, 0)
-        imagef = img_files[img_seq]
+        imagef = images_files[img_seq]
         frame = cv2.imread(imagef)
         IMAGE_SIZE = (416*2,416*2)
         #IMAGE_SIZE = comm.YOLO_IMAGE_SIZE
@@ -81,3 +73,16 @@ if __name__ == '__main__':
     ss = set(image_files_exclude)
     image_files_exclude = list(image_files_exclude)
     comf.write_list(output_file, image_files_exclude, op = "a")
+
+if __name__ == '__main__':
+    DATA_TYPE = "train2017"
+    input_file = f"./output/sel_{DATA_TYPE}_coco_filelist.txt"
+    output_file = "./output/exclude_coco_filelist.txt"
+
+    img_seq = 0
+    if len(sys.argv) >= 2:
+        img_seq = int(sys.argv[1])
+
+    images_files = comf.read_filelist(input_file)
+
+    select_image_files(images_files, output_file, img_seq)

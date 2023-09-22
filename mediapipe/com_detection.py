@@ -8,6 +8,8 @@ EXIT_KEY_Q = 'q'
 EXIT_KEY = 'q'
 
 YOLO_OBJECT_MIN_SIZE = 0.03
+YOLO_FACE_MIN_SIZE = 0.015
+YOLO_FACE_MIN_AREA = 0.001   #0.03*0.01=0.003
 
 file_ext = ['jpg', 'jpeg']
 YOLO_IMAGE_SIZE = (416,416)
@@ -115,6 +117,11 @@ COCO_ID_NAME_MAP ={1: 'person', 2: 'bicycle', 3: 'car', 4: 'motorcycle', 5: 'air
                    77: 'cell phone', 78: 'microwave', 79: 'oven', 80: 'toaster', 81: 'sink',
                    82: 'refrigerator', 84: 'book', 85: 'clock', 86: 'vase', 87: 'scissors',
                    88: 'teddy bear', 89: 'hair drier', 90: 'toothbrush'}
+
+
+CC_TXTFILE = (0, 255, 0)
+CC_HUMAN   = (0, 255, 120)
+CC_FACE    = (250, 0, 0)
 
 def voc_class_id_to_imvt_class_id(id:int):
     name = VOC_CLASS_NAMES[id]
@@ -294,7 +301,11 @@ def draw_info_on_image(image, width, height, info:list, cc=(250, 250, 0), thinkn
     a_xywh = int(a_xywh[0]), int(a_xywh[1]), int(a_xywh[2]), int(a_xywh[3])
     text = f'{yolo_name}:{prob:.2f}'
     #
-    cv2.rectangle(image, a_xywh, cc, thinkness)
+    #cv2.rectangle(image, a_xywh, cc, thinkness)
+    pt0 = (a_xywh[0], a_xywh[1])
+    pt1 = (a_xywh[0]+a_xywh[2], a_xywh[1]+a_xywh[3])
+    cv2.rectangle(image, pt0, pt1, cc, thinkness)
+
     cv2.putText(image, text, (a_xywh[0]+10, a_xywh[1]-10), linefont, 0.5, cc, thinkness)
 
 def draw_seq_on_image(image, seq:int, cc=(0, 0, 250), thinkness=2):
