@@ -75,7 +75,8 @@ def select_image_files(images_files, output_file, img_seq = 0):
     comf.write_list(output_file, image_files_exclude, op = "a")
 
 if __name__ == '__main__':
-    DATA_TYPE = "train2017"
+    #DATA_TYPE = "train2017"
+    DATA_TYPE = "val2017"
     input_file = f"./output/sel_{DATA_TYPE}_coco_filelist.txt"
     output_file = "./output/exclude_coco_filelist.txt"
 

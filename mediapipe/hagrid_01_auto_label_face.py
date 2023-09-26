@@ -176,7 +176,6 @@ def auto_label_face_for_yolo(imagefiles = [], config = {}):
                     if len(labels) > 0:
                         comf.ensure_file_dir(new_labelfile)
                         comf.write_list_to_file(labels, new_labelfile)
-                        print(new_labelfile)
 
             if config["show_image"]:
                 cv2.imshow('Face detection', image)
@@ -194,7 +193,9 @@ if __name__ == '__main__':
     ]
 
     # ensure person no incorrect label data
-    HAGRID_PERSON_THRESH = 0.7
+    PERSON_THRESH = 0.7
+    FACE_THRESH = 0.65
+    POSE_THRESH = 0.65
 
     config = {
         "show_image"                : False,
@@ -202,11 +203,11 @@ if __name__ == '__main__':
         "dirs"                      : image_dir,
         "dirs_subsample_max"        : 500,
         "face_detect"               : True,
-        "face_detect_thresh"        : 0.2,
+        "face_detect_thresh"        : FACE_THRESH,
         "pose_detect"               : True,
-        "pose_detect_thresh"        : 0.2,
+        "pose_detect_thresh"        : POSE_THRESH,
         "person_detect"             : True,
-        "person_detect_thresh"      : HAGRID_PERSON_THRESH,
+        "person_detect_thresh"      : PERSON_THRESH,
         "auto_label"                : True,     #  xxxx.jpg -> xxxx._mp_hand.txt
         "hagrid_parse_labels"       : True,     # hagrid read hand label data
         "hagrid_must_has_person"    : True,     # hagrid image must has person; otherwise don't generate label files

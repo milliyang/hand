@@ -30,6 +30,8 @@ if __name__ == '__main__':
         #  2. if two hand found, the hand closer to face use number (because we check all the sample image)
         for yolo_fmt in yolo_labels:
             items = yolo_fmt.strip().split()
+            if len(items) <= 0:
+                continue
             yolo_id  = int(items[0])
             #['0', '0.45230302', '0.2694478', '0.05382926', '0.11273142']
             #cxcywh:

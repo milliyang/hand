@@ -27,6 +27,12 @@ def rescale_hagrid_image_to_new_path(filenames:list):
         cv2.imwrite(tar_file, frame)
     print(f"scale_image_files:{len(filenames)}")
 
+
+def remove_all_mp_hand_txt_file(mp_txt_files):
+    for each in mp_txt_files:
+        os.remove(each)
+
+
 if __name__ == '__main__':
     label_path  = "/home/leo/hand_fullset/train_labels"
 
@@ -43,4 +49,8 @@ if __name__ == '__main__':
 
     copy_hagrid_label_to_new_path(mp_txt_files)
     rescale_hagrid_image_to_new_path(mp_txt_files)
+
+
+    #clear after copy
+    #remove_all_mp_hand_txt_file(mp_txt_files)
 

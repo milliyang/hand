@@ -166,7 +166,6 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                 if len(labels) > 0:
                     comf.ensure_file_dir(new_labelfile)
                     comf.write_list_to_file(labels, new_labelfile)
-                    print(new_labelfile)
 
             if config["show_image"]:
                 cv2.imshow('Face detection', image)
