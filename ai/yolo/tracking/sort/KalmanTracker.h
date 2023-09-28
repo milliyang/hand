@@ -11,6 +11,11 @@ using namespace cv;
 
 #define StateType Rect_<float>
 
+#define FACE_RECT_SPEED_CTRL      (1)           // area = w*h
+#define FACE_RECT_SPEED_RATIO     (0.18)        // area = old_area * (1-R) + new_area * (R)
+
+#define FACE_CLS_ID                (1)          //must the same as Yolo
+
 // This class represents the internel state of individual tracked objects observed as bounding box.
 class KalmanTracker
 {
@@ -60,6 +65,8 @@ public:
     //leo for yolo
     int          class_idx_;
     float        confidence_;
+
+    float        area_;
 private:
     void init_kf(StateType stateMat);
 

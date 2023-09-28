@@ -35,8 +35,11 @@ void KalmanTracker::init_kf(StateType stateMat)
     // initialize state vector with bounding box in [cx,cy,s,r] style
     kf.statePost.at<float>(0, 0) = stateMat.x + stateMat.width / 2;
     kf.statePost.at<float>(1, 0) = stateMat.y + stateMat.height / 2;
-    kf.statePost.at<float>(2, 0) = stateMat.area();
+    area_ = stateMat.area();
+    kf.statePost.at<float>(2, 0) = area_;
     kf.statePost.at<float>(3, 0) = stateMat.width / stateMat.height;
+
+    
 }
 
 // Predict the estimated bounding box.
@@ -64,10 +67,19 @@ void KalmanTracker::update(StateType stateMat)
     m_hits += 1;
     m_hit_streak += 1;
 
+#if FACE_RECT_SPEED_CTRL
+    if (class_idx_ == FACE_CLS_ID) {
+        area_ = area_ * (1.0 - FACE_RECT_SPEED_RATIO) + (float) stateMat.area() * FACE_RECT_SPEED_RATIO;
+    } else {
+        area_ = stateMat.area();
+    }
+#else
+    area_ = stateMat.area();
+#endif
     // measurement
     measurement.at<float>(0, 0) = stateMat.x + stateMat.width  / 2;
     measurement.at<float>(1, 0) = stateMat.y + stateMat.height / 2;
-    measurement.at<float>(2, 0) = stateMat.area();
+    measurement.at<float>(2, 0) = area_;
     measurement.at<float>(3, 0) = stateMat.width / stateMat.height;
 
     // update
