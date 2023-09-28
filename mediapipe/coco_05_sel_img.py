@@ -23,6 +23,11 @@ def select_image_files(images_files, output_file, img_seq = 0):
         #/home/leo/coco/labels/train2017/000000300024.txt
         labelfile = imagef.replace(".jpg", ".txt").replace("images", "labels")
 
+        if not os.path.isfile(labelfile):
+            print(labelfile, '[no file][skip]')
+            img_seq+=1
+            continue
+
         ff = open(labelfile)
         yolo_labels = ff.readlines()
         ff.close()
@@ -79,6 +84,8 @@ if __name__ == '__main__':
     DATA_TYPE = "val2017"
     input_file = f"./output/sel_{DATA_TYPE}_coco_filelist.txt"
     output_file = "./output/exclude_coco_filelist.txt"
+
+    #input_file = f"./output/exclude_coco_filelist.txt"
 
     img_seq = 0
     if len(sys.argv) >= 2:

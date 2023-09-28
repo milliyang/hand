@@ -16,11 +16,18 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
     object_detection = comm.get_object_detector(config['person_detect_thresh'])
     hand_detection   = comm.get_hand_detector(config['hand_detect_thresh'])
 
+    image_seq = config['image_seq_number']
+    image_seq_max = len(imagefiles)-1
+
     #cap = cv2.VideoCapture(0)
     with mpFaceDetector.FaceDetection(**mp_face_cfg) as faceDetection:
 
-        for image_seq, imagef in enumerate(imagefiles):
+        #for image_seq, imagef in enumerate(imagefiles):
+        while image_seq < image_seq_max:
             #print(imagef)
+            imagef = imagefiles[image_seq]
+            image_seq+=1
+
             frame = cv2.imread(imagef)
             frame = cv2.resize(frame, comm.YOLO_IMAGE_SIZE)
             height, width, _  = frame.shape
@@ -177,7 +184,7 @@ def auto_label_vol_for_yolo(imagefiles = [], config = {}):
                 if wait_time > 0:
                     time.sleep(wait_time)
 
-            if image_seq > config["max_image_num"]:
+            if image_seq > config["max_image_seq_number"]:
                 print("image_seq:", image_seq, " finish [TOO MUCH IMAGE]")
                 break
 
@@ -199,7 +206,8 @@ if __name__ == '__main__':
         "hand_detect_thresh"        : HAND_THRESH,
         "auto_label"                : True,     #  xxxx.jpg -> xxxx._mp_hand.txt
         "coco_parse_labels"         : True,     # hagrid read hand label data
-        "max_image_num"             : 15000,
+        "image_seq_number"          : 0,
+        "max_image_seq_number"      : 30000,
     }
 
     DEBUG = 0
@@ -216,7 +224,7 @@ if __name__ == '__main__':
     images = comf.read_list(coco_image_list)
 
     #clear dir
-    old_labels = f"/home/leo/coco/labels/{COCO_TYPE}"
-    comf.remove_all_files_in_cur_dir(old_labels)
+    #old_labels = f"/home/leo/coco/labels/{COCO_TYPE}"
+    #comf.remove_all_files_in_cur_dir(old_labels)
 
     auto_label_vol_for_yolo(images, config)

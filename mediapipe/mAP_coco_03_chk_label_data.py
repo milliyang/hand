@@ -48,11 +48,28 @@ if __name__ == '__main__':
     #remove old data
     files = comf.remove_all_files_in_dir(["/home/leo/coco/val_gt_labels", "/home/leo/coco/val_yolo_labels"])
 
-    yolo_labels = comf.get_files_in_current_dir("/home/leo/coco/labels_yolo/val2017")
-    true_labels = comf.get_files_in_current_dir("/home/leo/coco/labels/val2017")
+    yolo_labels = []
+    yolo_labels0 = comf.get_files_in_current_dir("/home/leo/coco/labels_yolo/val2017")
+    yolo_labels1 = comf.get_files_in_current_dir("/home/leo/coco/labels_yolo/train2017")
+
+    yolo_labels.extend(yolo_labels0)
+    yolo_labels.extend(yolo_labels1)
+    print("yolo_labels:", len(yolo_labels))
+
+    true_labels = []
+    for lab in yolo_labels:
+        #/home/leo/coco/labels_yolo/val2017/xxxxx.txt
+        #/home/leo/coco/labels_yolo/train2017/xxxxx.txt
+        true_lab = lab.replace("labels_yolo", "labels")
+        if os.path.isfile(true_lab):
+            true_labels.append(true_lab)
+
+    print("true_labels:", len(true_labels))
 
     empty_list = []
     for each in yolo_labels:
+        if not os.path.isfile(each):
+            continue
         lines = comf.read_list(each)
         if len(lines) <= 0:
             empty_list.append(each)
@@ -68,6 +85,9 @@ if __name__ == '__main__':
 
     truth_list = []
     for each in true_labels:
+        if not os.path.isfile(each):
+            continue
+
         lines = comf.read_list(each)
         if len(lines) <= 0:
             print(each, "NG no line")
@@ -81,26 +101,36 @@ if __name__ == '__main__':
                 print(each, "NG")
                 exit()
 
+    count = 0
     for gt_file in truth_list:
-        # "/home/leo/coco/labels/val2017/xxxxx.txt
-        # "/home/leo/coco/val_gt_labels/val2017/xxxxx.txt
-        gt_new =  gt_file.replace("labels", "val_gt_labels")
-
         # "/home/leo/coco/labels/val2017/xxxxx.txt
         # "/home/leo/coco/labels/labels_yolo/xxxxx.txt
         yolo =  gt_file.replace("labels", "labels_yolo")
         if yolo in empty_list:
             continue
 
-        comf.ensure_file_dir(gt_new)
-        copy_and_convert_cxcywh_xyxy_file(gt_file, gt_new)
+        # "/home/leo/coco/labels/val2017/xxxxx.txt =>
+        # "/home/leo/coco/val_gt_labels/val2017/xxxxx.txt
+        gt_new =  gt_file.replace("labels", "val_gt_labels")
 
         yolo_old = gt_file.replace("labels", "labels_yolo")
         yolo_new = gt_file.replace("labels", "val_yolo_labels")
+
+        #hack train to val dir
+        if "train2017" in gt_new:
+            gt_new =  gt_new.replace("train2017", "val2017")
+            gt_new =  gt_new.replace(".txt", ".train2017.txt")
+
+            yolo_new =  yolo_new.replace("train2017", "val2017")
+            yolo_new =  yolo_new.replace(".txt", ".train2017.txt")
+
+        comf.ensure_file_dir(gt_new)
+        copy_and_convert_cxcywh_xyxy_file(gt_file, gt_new)
 
         comf.ensure_file_dir(yolo_new)
         copy_and_convert_cxcywh_xyxy_file(yolo_old, yolo_new)
 
         print(gt_new, yolo_new)
+        count+=1
 
-    print("done")
+    print("done:", count)

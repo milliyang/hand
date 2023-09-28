@@ -19,5 +19,7 @@ def collect_yolo_detect_result(infile):
             comf.copy_one_file(labelf, outfile)
 
 if __name__ == '__main__':
-    infile = "/home/leo/coco/coco_val2017_filelists.txt"
+    #infile = "/home/leo/coco/coco_val2017_filelists.txt"
+    infile = "/home/leo/myhome/hand/mediapipe/output/sel_val2017_coco_filelist_all.txt"
     collect_yolo_detect_result(infile)
+
