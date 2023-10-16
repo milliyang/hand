@@ -14,13 +14,13 @@ bool ProxyReader::open(std::string &file)
     // If the input is the web camera, pass 0 instead of the video file name
     //cv::VideoCapture cap(0); // open the default camera
 
-    if (file.find(".jpg") != std::string::npos) {
+    if (file.find(".jpg") != std::string::npos || file.find(".JPG") != std::string::npos) {
         source_ = SOURCE_JPG;
-    } else if (file.find(".png") != std::string::npos) {
+    } else if (file.find(".png") != std::string::npos || file.find(".PNG") != std::string::npos) {
         source_ = SOURCE_JPG;
-    } else if (file.find(".bmp") != std::string::npos) {
+    } else if (file.find(".bmp") != std::string::npos || file.find(".BMP") != std::string::npos) {
         source_ = SOURCE_JPG;
-    } else if (file.find(".yuv") != std::string::npos) {
+    } else if (file.find(".yuv") != std::string::npos || file.find(".YUV") != std::string::npos) {
         source_ = SOURCE_YUV;
         stream_ = true;
     } else if (file.find(".txt") != std::string::npos) {
