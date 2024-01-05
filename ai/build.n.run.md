@@ -63,3 +63,5 @@ make install
 ./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel ~/Downloads/wudao/multi.p3.01.mp4 
 
 ```
+
+./yolo darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel tcp://192.168.9.6:5556 0

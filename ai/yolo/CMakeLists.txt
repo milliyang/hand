@@ -46,13 +46,16 @@ else()
     set(OpenCV_DIR "/home/leo/myhome/download/opencv_4x/opencv/install/lib/cmake/opencv4")   #4.5.5
 endif()
 
+set(ZeroMQ_DIR "/home/leo/temp/libzmq-4.3.4.build")   #4.5.5
+find_package(ZeroMQ REQUIRED )
+include_directories(${ZeroMQ_INCLUDE_DIRS})
+
 find_package( OpenCV REQUIRED )
 #find_package( OpenCV 3.4.17 REQUIRED )
 include_directories(${OpenCV_INCLUDE_DIRS})
 message(STATUS "OpenCV_VERSION = ${OpenCV_VERSION}")
 message(STATUS "OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
-
 
 # If you only built the library
 list (APPEND CMAKE_PREFIX_PATH "${CAFFE_INSTALL}")
@@ -100,12 +103,12 @@ endif()
 
 set(CAFFELIB caffe caffeproto)
 
-set(ALL_LIB ${XLIB} ${CMAKE_DL_LIBS}  ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
+set(ALL_LIB ${XLIB} ${CMAKE_DL_LIBS} ${ZeroMQ_LIBRARY} ${OpenCV_LIBS} ${CAFFELIB} ${OpenBLAS_LIB} ${Atlas_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
 
-add_executable(yolo "${ROOT_DIR}/main/YoTracker.cpp" ${SRC})
+add_executable(yolo "${ROOT_DIR}/main/YoloTracker.cpp" ${SRC})
 target_link_libraries(yolo ${ALL_LIB})
 
-add_executable(detect "${ROOT_DIR}/main/YoloDetecter.cpp" ${SRC})
+add_executable(detect "${ROOT_DIR}/main/Detecter.cpp" ${SRC})
 target_link_libraries(detect ${ALL_LIB})
 
 # file(GLOB SIFT_SRC "${ROOT_DIR}/sift/*.cpp")

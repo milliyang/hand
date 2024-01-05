@@ -8,8 +8,10 @@
 
 
 # run model generate detection results:
-    ./detect darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel ~/coco/coco_val2017_filelists.txt 1
 
+    cd /home/leo/myhome/hand/ai/yolo_build
+
+    ./detect darknet2caffe/imvt20_yolo2.cut.prototxt darknet2caffe/imvt20_yolo2.caffemodel ~/coco/coco_val2017_filelists.txt 1
 
 # prepare data
     cd /home/leo/myhome/hand/mediapipe

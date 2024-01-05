@@ -21,17 +21,17 @@
 
 using namespace std;
 
-// ./YoTracker.exe yolo_small_deploy.prototxt yolo_small.caffemodel yolo.mov
-// ./YoTracker.exe yolo2_hisi/yolo2.prototxt yolo2_hisi/yolo2.caffemodel yolo.mov
-// ./YoTracker.exe yolov2.prototxt yolov2.caffemodel car.mov
-// ./YoTracker.exe yolov2.prototxt yolov2.caffemodel person.jpg
-// ./YoTracker.exe fake.prototxt fake.caffemodel person.jpg
+// ./yolo yolo_small_deploy.prototxt yolo_small.caffemodel yolo.mov
+// ./yolo yolo2_hisi/yolo2.prototxt yolo2_hisi/yolo2.caffemodel yolo.mov
+// ./yolo yolov2.prototxt yolov2.caffemodel car.mov
+// ./yolo yolov2.prototxt yolov2.caffemodel person.jpg
+// ./yolo fake.prototxt fake.caffemodel person.jpg
 
 //  from: 192.168.9.6
-// ./YoTracker.exe yolov2.prototxt yolov2.caffemodel tcp://192.168.9.6:5556
-// ./YoTracker.exe yolov2.prototxt yolov2.caffemodel tcp://192.168.9.7:5556
+// ./yolo yolov2.prototxt yolov2.caffemodel tcp://192.168.9.6:5556
+// ./yolo yolov2.prototxt yolov2.caffemodel tcp://192.168.9.7:5556
 
-//  ./YoTracker.exe yolov3.mini.prototxt yolov3.mini.caffemodel street_cars.jpg
+// ./yolo yolov3.mini.prototxt yolov3.mini.caffemodel street_cars.jpg
 
 void runFooTracker(FooTracker &fooTracker, cv::Mat &frame, std::vector<YoloBox> &yolo_boxs)
 {
