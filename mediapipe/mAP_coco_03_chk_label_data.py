@@ -46,6 +46,7 @@ def copy_and_convert_cxcywh_xyxy_file(source, target):
 
 if __name__ == '__main__':
     #remove old data
+    # gt - ground truth
     files = comf.remove_all_files_in_dir(["/home/leo/coco/val_gt_labels", "/home/leo/coco/val_yolo_labels"])
 
     yolo_labels = []
@@ -104,7 +105,7 @@ if __name__ == '__main__':
     count = 0
     for gt_file in truth_list:
         # "/home/leo/coco/labels/val2017/xxxxx.txt
-        # "/home/leo/coco/labels/labels_yolo/xxxxx.txt
+        # "/home/leo/coco/labels_yolo/val2017/xxxxx.txt
         yolo =  gt_file.replace("labels", "labels_yolo")
         if yolo in empty_list:
             continue
